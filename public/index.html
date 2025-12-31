@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vamos Organizar?</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Tela Inicial -->
+        <div id="tela-inicial" class="tela active">
+            <div class="card-central">
+                <h1 class="titulo-principal">VAMOS ORGANIZAR?</h1>
+                <button class="btn-comecar" onclick="iniciarWizard()">COMEÇAR</button>
+            </div>
+        </div>
+
+        <!-- Wizard - Passo 1: Receitas -->
+        <div id="passo-1" class="tela">
+            <div class="card-wizard">
+                <div class="progresso">
+                    <div class="barra-progresso" style="width: 25%"></div>
+                </div>
+                <h2>💰 Quanto vocês recebem por mês?</h2>
+                <div id="lista-receitas"></div>
+                <div class="form-group">
+                    <input type="text" id="descricao-receita" placeholder="Ex: Salário Maria" class="input-field">
+                    <input type="number" id="valor-receita" placeholder="Valor (R$)" class="input-field">
+                    <button onclick="adicionarReceita()" class="btn-adicionar">+ Adicionar</button>
+                </div>
+                <button onclick="proximoPasso(2)" class="btn-proximo">Próximo →</button>
+            </div>
+        </div>
+
+        <!-- Wizard - Passo 2: Contas Fixas -->
+        <div id="passo-2" class="tela">
+            <div class="card-wizard">
+                <div class="progresso">
+                    <div class="barra-progresso" style="width: 50%"></div>
+                </div>
+                <h2>🏠 Quais são as contas fixas?</h2>
+                <div id="lista-contas"></div>
+                <div class="form-group">
+                    <input type="text" id="descricao-conta" placeholder="Ex: Aluguel" class="input-field">
+                    <input type="number" id="valor-conta" placeholder="Valor (R$)" class="input-field">
+                    <input type="number" id="dia-vencimento" placeholder="Dia vencimento" class="input-field" min="1" max="31">
+                    <button onclick="adicionarConta()" class="btn-adicionar">+ Adicionar</button>
+                </div>
+                <div class="botoes-navegacao">
+                    <button onclick="voltarPasso(1)" class="btn-voltar">← Voltar</button>
+                    <button onclick="proximoPasso(3)" class="btn-proximo">Próximo →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wizard - Passo 3: Dívidas -->
+        <div id="passo-3" class="tela">
+            <div class="card-wizard">
+                <div class="progresso">
+                    <div class="barra-progresso" style="width: 75%"></div>
+                </div>
+                <h2>💳 Tem alguma dívida?</h2>
+                <div id="lista-dividas"></div>
+                <div class="form-group">
+                    <input type="text" id="descricao-divida" placeholder="Ex: Empréstimo banco" class="input-field">
+                    <input type="number" id="valor-total-divida" placeholder="Valor total (R$)" class="input-field">
+                    <input type="number" id="valor-parcela-divida" placeholder="Valor parcela (R$)" class="input-field">
+                    <input type="number" id="parcelas-total" placeholder="Total de parcelas" class="input-field">
+                    <input type="number" id="parcelas-pagas" placeholder="Parcelas já pagas" class="input-field" value="0">
+                    <button onclick="adicionarDivida()" class="btn-adicionar">+ Adicionar</button>
+                </div>
+                <div class="botoes-navegacao">
+                    <button onclick="voltarPasso(2)" class="btn-voltar">← Voltar</button>
+                    <button onclick="finalizarWizard()" class="btn-proximo">Finalizar 🎉</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Final -->
+        <div id="dashboard" class="tela">
+            <div class="dashboard-container">
+                <h1>📊 Seu Resumo Financeiro</h1>
+                <div class="cards-resumo">
+                    <div class="card-info receitas">
+                        <h3>💰 Receitas</h3>
+                        <p class="valor" id="total-receitas">R$ 0,00</p>
+                    </div>
+                    <div class="card-info contas">
+                        <h3>🏠 Contas Fixas</h3>
+                        <p class="valor" id="total-contas">R$ 0,00</p>
+                    </div>
+                    <div class="card-info dividas">
+                        <h3>💳 Dívidas (mês)</h3>
+                        <p class="valor" id="total-dividas">R$ 0,00</p>
+                    </div>
+                    <div class="card-info disponivel">
+                        <h3>✨ Disponível</h3>
+                        <p class="valor" id="total-disponivel">R$ 0,00</p>
+                    </div>
+                </div>
+                
+                <div class="secao-detalhes">
+                    <h2>📋 Detalhes das Dívidas</h2>
+                    <div id="detalhes-dividas"></div>
+                </div>
+
+                <button onclick="resetar()" class="btn-resetar">🔄 Recomeçar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
