@@ -8,6 +8,35 @@
 </head>
 <body>
     <div class="container">
+          <div id="tela-auth" class="tela active">
+        <div class="card-auth">
+            <h1 class="titulo-auth">💰 Controle Financeiro</h1>
+            
+            <!-- Abas Login/Cadastro -->
+            <div class="tabs">
+                <button class="tab active" onclick="mostrarFormulario('login')">Login</button>
+                <button class="tab" onclick="mostrarFormulario('cadastro')">Cadastrar</button>
+            </div>
+
+            <!-- Formulário de Login -->
+            <div id="form-login" class="form-auth">
+                <input type="email" id="login-email" placeholder="Email" class="input-field">
+                <input type="password" id="login-senha" placeholder="Senha" class="input-field">
+                <button onclick="fazerLogin()" class="btn-auth">Entrar</button>
+                <p id="erro-login" class="erro-msg"></p>
+            </div>
+
+            <!-- Formulário de Cadastro -->
+            <div id="form-cadastro" class="form-auth" style="display: none;">
+                <input type="text" id="cadastro-nome" placeholder="Nome" class="input-field">
+                <input type="email" id="cadastro-email" placeholder="Email" class="input-field">
+                <input type="password" id="cadastro-senha" placeholder="Senha" class="input-field">
+                <button onclick="fazerCadastro()" class="btn-auth">Cadastrar</button>
+                <p id="erro-cadastro" class="erro-msg"></p>
+            </div>
+        </div>
+    </div>
+
         <!-- Tela Inicial -->
         <div id="tela-inicial" class="tela active">
             <div class="card-central">
@@ -79,8 +108,12 @@
 
         <!-- Dashboard Final -->
         <div id="dashboard" class="tela">
-            <div class="dashboard-container">
-                <h1>📊 Seu Resumo Financeiro</h1>
+    <div class="dashboard-container">
+        <!-- ADICIONA ESSE HEADER COM BOTÃO DE LOGOUT -->
+        <div class="header-dashboard">
+            <h1>📊 Seu Resumo Financeiro</h1>
+            <button onclick="fazerLogout()" class="btn-logout">Sair</button>
+        </div>
                 <div class="cards-resumo">
                     <div class="card-info receitas">
                         <h3>💰 Receitas</h3>

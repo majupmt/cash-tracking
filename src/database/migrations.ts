@@ -1,0 +1,37 @@
+import sql from './db';
+
+export async function runMigrations() {
+    try {
+        console.log('🔄 Executando migrações...');
+
+        // Adicionar coluna usuario_id na tabela receitas (se não existir)
+        await sql`
+            ALTER TABLE receitas
+            ADD COLUMN IF NOT EXISTS usuario_id INTEGER;
+        `;
+
+        // Adicionar coluna usuario_id na tabela dividas (se não existir)
+        await sql`
+            ALTER TABLE dividas
+            ADD COLUMN IF NOT EXISTS usuario_id INTEGER;
+        `;
+
+        // Adicionar coluna usuario_id na tabela contas_fixas (se não existir)
+        await sql`
+            ALTER TABLE contas_fixas
+            ADD COLUMN IF NOT EXISTS usuario_id INTEGER;
+        `;
+
+        // Adicionar coluna usuario_id na tabela planejamento_mensal (se não existir)
+        await sql`
+            ALTER TABLE planejamento_mensal
+            ADD COLUMN IF NOT EXISTS usuario_id INTEGER;
+        `;
+
+        console.log('✅ Migrações executadas com sucesso!');
+        console.log('⚠️  ATENÇÃO: Se você já tinha dados, será necessário atualizar manualmente o usuario_id dos registros existentes.');
+    } catch (error) {
+        console.error('❌ Erro ao executar migrações:', error);
+        throw error;
+    }
+}

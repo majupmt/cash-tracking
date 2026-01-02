@@ -293,3 +293,100 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* Tela de Autenticação */
+.card-auth {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+}
+
+.titulo-auth {
+    color: #C8A046;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2rem;
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.tab {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid #E8C547;
+    background: white;
+    color: #C8A046;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.tab.active {
+    background: #E8C547;
+    color: white;
+}
+
+.tab:hover {
+    background: #E8C547;
+    color: white;
+}
+
+.form-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.btn-auth {
+    background: #E8C547;
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-auth:hover {
+    background: #C8A046;
+}
+
+.erro-msg {
+    color: #ff6b6b;
+    text-align: center;
+    font-size: 0.9rem;
+    min-height: 20px;
+}
+
+/* Botão de Logout no Dashboard */
+.header-dashboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.btn-logout {
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.btn-logout:hover {
+    background: #ee5a52;
+}

@@ -1,5 +1,143 @@
 const API_URL = 'http://localhost:4000';
 
+function mostrarFormulario(tipo){
+    document.getElementById('form-login').style.display = 'none';
+    document.getElementById('form-cadastro').style.display = 'none';
+
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+
+    if (tipo === 'login'){
+        document.getElementById('form-login').style.display = 'flex';
+        document.querySelectorAll('.tab')[0].classList.add('active');
+    } else {
+        document.getElementById('form-cadastro').style.display = 'flex';
+        document.querySelectorAll('.tab')[1].classList.add('active');
+    }
+
+    document.getElementById('erro-login').textContent = '';
+    document.querySelectorAll('.tab')[1].classList.add('active');
+}
+
+async function fazerCadastro(){
+     const nome = document.getElementById('cadastro-nome').value;
+    const email = document.getElementById('cadastro-email').value;
+    const senha = document.getElementById('cadastro-senha').value;
+
+    if (!nome || !email || !senha) {
+        document.getElementById('erro-cadastro').textContent = 'Preencha todos os campos!';
+        return;
+    }
+
+    if (senha.length < 6) {
+        document.getElementById('erro-cadastro').textContent = 'Senha deve ter no mínimo 6 caracteres';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/auth/cadastro`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json' },
+            body: JSON.stringify({nome, email, senha})
+        });
+
+        const dados = await response.json();
+
+        if (dados.erros) {
+            document.getElementById('erro-cadastro').textContent = dados.error;
+            return;
+        }
+
+        localStorage.setItem('token', dados.token);
+        localStorage.setItem('usuario', JSON.stringify(dados.usuario));
+
+        mostrarTela('tela-inicial');
+
+    } catch (error) {
+        console.error('Erro no cadastro:', error);
+        document.getElementById('erro-cadastro').textContent = 'Erro ao cadastrar. Tente novamente';
+    }
+}
+
+async function fazerLogin() {
+    // Pega os valores dos campos
+    const email = document.getElementById('login-email').value;
+    const senha = document.getElementById('login-senha').value;
+    
+    // Validação básica
+    if (!email || !senha) {
+        document.getElementById('erro-login').textContent = 'Preencha todos os campos!';
+        return;
+    }
+    
+    try {
+        // Faz a requisição pra API
+        const response = await fetch(`${API_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, senha })
+        });
+        
+        const dados = await response.json();
+        
+        // Se deu erro
+        if (dados.error) {
+            document.getElementById('erro-login').textContent = dados.error;
+            return;
+        }
+        
+        // Sucesso! Salva o token e o usuário
+        localStorage.setItem('token', dados.token);
+        localStorage.setItem('usuario', JSON.stringify(dados.usuario));
+        
+        // Vai pra tela inicial
+        mostrarTela('tela-inicial');
+        
+    } catch (error) {
+        console.error('Erro no login:', error);
+        document.getElementById('erro-login').textContent = 'Erro ao fazer login. Tente novamente!';
+    }
+}
+
+// Função de LOGOUT
+function fazerLogout() {
+    // Remove token e usuário do localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+    
+    // Reseta os dados temporários
+    dadosTemporarios = {
+        receitas: [],
+        contas: [],
+        dividas: []
+    };
+    
+    // Volta pra tela de autenticação
+    mostrarTela('tela-auth');
+}
+
+// Função pra pegar o token salvo
+function getToken() {
+    return localStorage.getItem('token');
+}
+
+// Função pra verificar se o usuário está logado
+function verificarAutenticacao() {
+    const token = getToken();
+    
+    if (!token) {
+        // Não tá logado, vai pra tela de login
+        mostrarTela('tela-auth');
+        return false;
+    }
+    
+    return true;
+}
+
+// Quando a página carregar, verifica se está logado
+window.addEventListener('DOMContentLoaded', () => {
+    verificarAutenticacao();
+});
+
 // Dados temporários do wizard
 let dadosTemporarios = {
     receitas: [],
@@ -166,12 +304,23 @@ function removerDivida(index) {
 
 // Finalizar e salvar na API
 async function finalizarWizard() {
+    const token = getToken();
+
+    if (!token) {
+        alert('Você não está logado!');
+        fazerLogout();
+        return;
+    }
+
     try {
         // Salvar receitas
         for (const receita of dadosTemporarios.receitas) {
             await fetch(`${API_URL}/receitas`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify(receita)
             });
         }
@@ -180,7 +329,11 @@ async function finalizarWizard() {
         for (const conta of dadosTemporarios.contas) {
             await fetch(`${API_URL}/contas`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                
+                },
                 body: JSON.stringify(conta)
             });
         }
@@ -189,7 +342,10 @@ async function finalizarWizard() {
         for (const divida of dadosTemporarios.dividas) {
             await fetch(`${API_URL}/dividas`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify(divida)
             });
         }
@@ -206,8 +362,23 @@ async function finalizarWizard() {
 
 // Carregar e exibir dashboard
 async function carregarDashboard() {
+    const token = getToken();
+
+    if (!token){
+        lert('Você não está logado!');
+        fazerLogout();
+        return;
+    }
+
     try {
-        const response = await fetch(`${API_URL}/dashboard/resumo`);
+        const response = await fetch(`${API_URL}/dashboard/resumo`, {
+                method: 'GET',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+        });
+
         const dados = await response.json();
 
         // Atualizar cards
@@ -244,15 +415,7 @@ async function carregarDashboard() {
 
 // Resetar tudo
 function resetar() {
-    if (confirm('Tem certeza que quer recomeçar? Isso não apaga os dados do banco.')) {
-        dadosTemporarios = {
-            receitas: [],
-            contas: [],
-            dividas: []
-        };
-        renderizarReceitas();
-        renderizarContas();
-        renderizarDividas();
-        mostrarTela('tela-inicial');
+    if (confirm('Tem certeza que quer sair? Seus dados estão salvos.')) {
+        fazerLogout();
     }
 }

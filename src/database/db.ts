@@ -12,6 +12,21 @@ const sql = postgres({
 // Função pra inicializar as tabelas
 export async function initDatabase() {
     try {
+        // Tabela de usuários (SEMPRE criar primeiro)
+        await sql`
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id SERIAL PRIMARY KEY,
+                nome TEXT NOT NULL,
+                email TEXT NOT NULL UNIQUE,
+                senha_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `;
+
+        // Executar migrations para adicionar usuario_id nas tabelas existentes
+        const { runMigrations } = await import('./migrations');
+        await runMigrations();
+
         // Tabela de receitas
         await sql`
             CREATE TABLE IF NOT EXISTS receitas (
@@ -21,7 +36,9 @@ export async function initDatabase() {
                 data_recebimento DATE,
                 recorrente BOOLEAN DEFAULT true,
                 ativo BOOLEAN DEFAULT true,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                usuario_id INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
             )
         `;
 
@@ -35,7 +52,9 @@ export async function initDatabase() {
                 taxa_juros DECIMAL(5, 2) DEFAULT 0,
                 data_inicio DATE NOT NULL,
                 quitada BOOLEAN DEFAULT false,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                usuario_id INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
             )
         `;
 
@@ -61,7 +80,9 @@ export async function initDatabase() {
                 valor DECIMAL(10, 2) NOT NULL,
                 dia_vencimento INTEGER,
                 ativo BOOLEAN DEFAULT true,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                usuario_id INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
             )
         `;
 
@@ -69,10 +90,13 @@ export async function initDatabase() {
         await sql`
             CREATE TABLE IF NOT EXISTS planejamento_mensal (
                 id SERIAL PRIMARY KEY,
-                mes_referencia TEXT NOT NULL UNIQUE,
+                mes_referencia TEXT NOT NULL,
                 valor_investimento DECIMAL(10, 2) DEFAULT 0,
                 observacoes TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                usuario_id INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+                UNIQUE(mes_referencia, usuario_id)
             )
         `;
 

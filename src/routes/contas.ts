@@ -1,42 +1,69 @@
 import { Elysia, t } from 'elysia';
 import sql from '../database/db';
+import { extrairUsuarioDoHeader } from '../middleware/auth';
 
 export const contasRoutes = new Elysia({ prefix: '/contas' })
 
     // Listar todas as contas ativas
-    .get('/', async () => {
-        const contas = await sql`
-            SELECT * FROM contas_fixas
-            WHERE ativo = true
-            ORDER BY dia_vencimento ASC
-        `;
-        return contas;
+    .get('/', async ({ headers, set }) => {
+        try {
+            const { userId } = extrairUsuarioDoHeader(headers.authorization || null);
+
+            const contas = await sql`
+                SELECT * FROM contas_fixas
+                WHERE ativo = true AND usuario_id = ${userId}
+                ORDER BY dia_vencimento ASC
+            `;
+            return contas;
+        } catch (error) {
+            set.status = 401;
+            return { error: 'Não autorizado' };
+        }
     })
 
     // Buscar conta por ID
-    .get('/:id', async ({ params }) => {
-        const [conta] = await sql`
-            SELECT * FROM contas_fixas WHERE id = ${params.id}
-        `;
-        if (!conta) {
-            return { error: 'Conta não encontrada' };
+    .get('/:id', async ({ params, headers, set }) => {
+        try {
+            const { userId } = extrairUsuarioDoHeader(headers.authorization || null);
+
+            const [conta] = await sql`
+                SELECT * FROM contas_fixas
+                WHERE id = ${params.id} AND usuario_id = ${userId}
+            `;
+
+            if (!conta) {
+                set.status = 404;
+                return { error: 'Conta não encontrada' };
+            }
+
+            return conta;
+        } catch (error) {
+            set.status = 401;
+            return { error: 'Não autorizado' };
         }
-        return conta;
     })
 
     // Criar nova conta
-    .post('/', async ({ body }) => {
-        const [conta] = await sql`
-            INSERT INTO contas_fixas (descricao, valor, dia_vencimento)
-            VALUES (${body.descricao}, ${body.valor}, ${body.dia_vencimento || null})
-            RETURNING *
-        `;
-        
-        if (!conta) {
-            return { error: 'Erro ao criar conta' };
+    .post('/', async ({ body, headers, set }) => {
+        try {
+            const { userId } = extrairUsuarioDoHeader(headers.authorization || null);
+
+            const [conta] = await sql`
+                INSERT INTO contas_fixas (descricao, valor, dia_vencimento, usuario_id)
+                VALUES (${body.descricao}, ${body.valor}, ${body.dia_vencimento || null}, ${userId})
+                RETURNING *
+            `;
+
+            if (!conta) {
+                set.status = 500;
+                return { error: 'Erro ao criar conta' };
+            }
+
+            return conta;
+        } catch (error) {
+            set.status = 401;
+            return { error: 'Não autorizado' };
         }
-        
-        return conta;
     }, {
         body: t.Object({
             descricao: t.String(),
@@ -46,21 +73,29 @@ export const contasRoutes = new Elysia({ prefix: '/contas' })
     })
 
     // Atualizar conta
-    .put('/:id', async ({ params, body }) => {
-        const [conta] = await sql`
-            UPDATE contas_fixas
-            SET descricao = ${body.descricao},
-                valor = ${body.valor},
-                dia_vencimento = ${body.dia_vencimento || null}
-            WHERE id = ${params.id}
-            RETURNING *
-        `;
-        
-        if (!conta) {
-            return { error: 'Conta não encontrada' };
+    .put('/:id', async ({ params, body, headers, set }) => {
+        try {
+            const { userId } = extrairUsuarioDoHeader(headers.authorization || null);
+
+            const [conta] = await sql`
+                UPDATE contas_fixas
+                SET descricao = ${body.descricao},
+                    valor = ${body.valor},
+                    dia_vencimento = ${body.dia_vencimento || null}
+                WHERE id = ${params.id} AND usuario_id = ${userId}
+                RETURNING *
+            `;
+
+            if (!conta) {
+                set.status = 404;
+                return { error: 'Conta não encontrada' };
+            }
+
+            return conta;
+        } catch (error) {
+            set.status = 401;
+            return { error: 'Não autorizado' };
         }
-        
-        return conta;
     }, {
         body: t.Object({
             descricao: t.String(),
@@ -70,12 +105,25 @@ export const contasRoutes = new Elysia({ prefix: '/contas' })
     })
 
     // Desativar conta (soft delete)
-    .delete('/:id', async ({ params }) => {
-        const [conta] = await sql`
-            UPDATE contas_fixas 
-            SET ativo = false 
-            WHERE id = ${params.id}
-            RETURNING *
-        `;
-        return conta || { error: 'Conta não encontrada' };
+    .delete('/:id', async ({ params, headers, set }) => {
+        try {
+            const { userId } = extrairUsuarioDoHeader(headers.authorization || null);
+
+            const [conta] = await sql`
+                UPDATE contas_fixas
+                SET ativo = false
+                WHERE id = ${params.id} AND usuario_id = ${userId}
+                RETURNING *
+            `;
+
+            if (!conta) {
+                set.status = 404;
+                return { error: 'Conta não encontrada' };
+            }
+
+            return conta;
+        } catch (error) {
+            set.status = 401;
+            return { error: 'Não autorizado' };
+        }
     });
