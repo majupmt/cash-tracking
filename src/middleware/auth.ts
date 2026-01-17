@@ -1,25 +1,17 @@
-import jwt from 'jsonwebtoken';
+import { Elysia } from 'elysia';
+import { extrairUsuarioDoHeader } from '../utils/jwt';
 import type { JWTPayload } from '../types/auth';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'sua-chave-secreta-super-segura-mude-em-producao';
+export const authMiddleware = new Elysia({
+  name: 'auth'
+}).derive(({ request, set }): { user: JWTPayload } => {
+  try {
+    const authHeader = request.headers.get('authorization');
+    const user = extrairUsuarioDoHeader(authHeader);
 
-export function gerarToken(payload: JWTPayload): string {
-    return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
-}
-
-export function verificarToken(token: string): JWTPayload {
-    try {
-        return jwt.verify(token, JWT_SECRET) as JWTPayload;
-    } catch (error) {
-        throw new Error('Token inválido ou expirado');
-    }
-}
-
-export function extrairUsuarioDoHeader(authHeader: string | null): JWTPayload {
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        throw new Error('Token não fornecido');
-    }
-
-    const token = authHeader.substring(7);
-    return verificarToken(token);
-}
+    return { user };
+  } catch (error: any) {
+    set.status = 401;
+    throw new Error(error.message || 'Não autorizado');
+  }
+});
