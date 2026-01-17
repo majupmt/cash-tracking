@@ -1,3 +1,39 @@
+/* ===========================
+   VARIÁVEIS DE COR - DESIGN AZUL
+   =========================== */
+:root {
+    /* Gradiente de fundo */
+    --bg-gradient-start: #0a2540;
+    --bg-gradient-mid: #1e40af;
+    --bg-gradient-end: #3b82f6;
+    
+    /* Card/Modal */
+    --card-bg: #1e293b;
+    --card-shadow: rgba(0, 0, 0, 0.3);
+    
+    /* Textos */
+    --title-color: #ffffff;
+    --label-color: #e2e8f0;
+    --input-text: #1e293b;
+    
+    /* Inputs */
+    --input-bg: #cbd5e1;
+    --input-border: #94a3b8;
+    --input-focus: #3b82f6;
+    
+    /* Botão */
+    --button-bg: #1e293b;
+    --button-hover: #0f172a;
+    --button-text: #ffffff;
+    
+    /* Fontes */
+    --font-title: 'Poppins', sans-serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+/* ===========================
+   RESET E BASE
+   =========================== */
 * {
     margin: 0;
     padding: 0;
@@ -5,8 +41,8 @@
 }
 
 body {
-    font-family: 'Courier New', monospace;
-    background: linear-gradient(135deg, #F4D03F 0%, #E8C547 100%);
+    font-family: var(--font-body);
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-mid) 50%, var(--bg-gradient-end) 100%);
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -30,52 +66,105 @@ body {
     min-height: 80vh;
 }
 
-/* Tela Inicial */
+/* ===========================
+   TELA INICIAL - CADASTRO/LOGIN
+   =========================== */
 .card-central {
-    background: rgba(200, 160, 70, 0.8);
-    padding: 80px 60px;
+    background: var(--card-bg);
+    padding: 60px 50px;
     border-radius: 20px;
     text-align: center;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 20px 60px var(--card-shadow);
+    width: 100%;
+    max-width: 500px;
 }
 
 .titulo-principal {
+    font-family: var(--font-title);
     font-size: 3rem;
-    color: white;
-    font-style: italic;
-    margin-bottom: 40px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    font-weight: 700;
+    color: var(--title-color);
+    margin-bottom: 50px;
+    letter-spacing: 1px;
 }
 
+/* Labels dos inputs */
+.card-central label {
+    display: block;
+    text-align: left;
+    color: var(--label-color);
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+    margin-top: 20px;
+}
+
+.card-central label:first-of-type {
+    margin-top: 0;
+}
+
+/* Inputs da tela inicial */
+.card-central input {
+    width: 100%;
+    padding: 15px 18px;
+    background: var(--input-bg);
+    border: 2px solid var(--input-border);
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: var(--font-body);
+    color: var(--input-text);
+    transition: all 0.3s ease;
+}
+
+.card-central input:focus {
+    outline: none;
+    border-color: var(--input-focus);
+    background: #e2e8f0;
+}
+
+.card-central input::placeholder {
+    color: #64748b;
+}
+
+/* Botão de cadastro/login */
 .btn-comecar {
-    background: rgba(150, 120, 50, 0.9);
-    color: white;
+    width: 100%;
+    background: var(--button-bg);
+    color: var(--button-text);
     border: none;
-    padding: 20px 60px;
-    font-size: 1.5rem;
+    padding: 16px 40px;
+    font-size: 1.1rem;
+    font-weight: 600;
     border-radius: 10px;
     cursor: pointer;
-    font-family: 'Courier New', monospace;
-    font-weight: bold;
-    transition: all 0.3s;
+    font-family: var(--font-body);
+    transition: all 0.3s ease;
+    margin-top: 30px;
 }
 
 .btn-comecar:hover {
-    background: rgba(130, 100, 40, 1);
-    transform: scale(1.05);
+    background: var(--button-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Wizard */
+.btn-comecar:active {
+    transform: translateY(0);
+}
+
+/* ===========================
+   WIZARD - TELAS DE CADASTRO
+   =========================== */
 .card-wizard {
-    background: white;
+    background: var(--card-bg);
     padding: 40px;
     border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 20px 60px var(--card-shadow);
     width: 100%;
 }
 
 .progresso {
-    background: #f0f0f0;
+    background: rgba(255, 255, 255, 0.1);
     height: 8px;
     border-radius: 10px;
     margin-bottom: 30px;
@@ -83,15 +172,17 @@ body {
 }
 
 .barra-progresso {
-    background: #E8C547;
+    background: var(--input-focus);
     height: 100%;
     transition: width 0.3s;
 }
 
 .card-wizard h2 {
-    color: #C8A046;
+    color: var(--title-color);
     margin-bottom: 30px;
     font-size: 1.8rem;
+    font-family: var(--font-title);
+    font-weight: 600;
 }
 
 .form-group {
@@ -101,33 +192,50 @@ body {
     margin-bottom: 30px;
 }
 
+.form-group label {
+    color: var(--label-color);
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: -10px;
+}
+
 .input-field {
-    padding: 15px;
-    border: 2px solid #E8C547;
+    padding: 15px 18px;
+    background: var(--input-bg);
+    border: 2px solid var(--input-border);
     border-radius: 10px;
     font-size: 1rem;
-    font-family: 'Courier New', monospace;
+    font-family: var(--font-body);
+    color: var(--input-text);
+    transition: all 0.3s ease;
 }
 
 .input-field:focus {
     outline: none;
-    border-color: #C8A046;
+    border-color: var(--input-focus);
+    background: #e2e8f0;
+}
+
+.input-field::placeholder {
+    color: #64748b;
 }
 
 .btn-adicionar {
-    background: #E8C547;
+    background: var(--input-focus);
     color: white;
     border: none;
     padding: 15px;
     border-radius: 10px;
     cursor: pointer;
     font-size: 1rem;
-    font-weight: bold;
-    transition: all 0.3s;
+    font-weight: 600;
+    font-family: var(--font-body);
+    transition: all 0.3s ease;
 }
 
 .btn-adicionar:hover {
-    background: #C8A046;
+    background: #2563eb;
+    transform: translateY(-2px);
 }
 
 .botoes-navegacao {
@@ -141,65 +249,81 @@ body {
     border: none;
     border-radius: 10px;
     font-size: 1rem;
-    font-weight: bold;
+    font-weight: 600;
+    font-family: var(--font-body);
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
 }
 
 .btn-voltar {
-    background: #ddd;
-    color: #666;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--label-color);
 }
 
 .btn-proximo {
-    background: #E8C547;
+    background: var(--input-focus);
     color: white;
 }
 
 .btn-voltar:hover {
-    background: #ccc;
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .btn-proximo:hover {
-    background: #C8A046;
+    background: #2563eb;
+    transform: translateY(-2px);
 }
 
-/* Listas de itens */
+/* ===========================
+   LISTAS DE ITENS
+   =========================== */
 #lista-receitas, #lista-contas, #lista-dividas {
     margin-bottom: 20px;
 }
 
 .item-lista {
-    background: #f9f9f9;
+    background: rgba(255, 255, 255, 0.05);
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    color: var(--label-color);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .item-lista button {
-    background: #ff6b6b;
+    background: #ef4444;
     color: white;
     border: none;
     padding: 8px 15px;
     border-radius: 5px;
     cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
 }
 
-/* Dashboard */
+.item-lista button:hover {
+    background: #dc2626;
+}
+
+/* ===========================
+   DASHBOARD
+   =========================== */
 .dashboard-container {
-    background: white;
+    background: var(--card-bg);
     padding: 40px;
     border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 20px 60px var(--card-shadow);
 }
 
 .dashboard-container h1 {
-    color: #C8A046;
+    color: var(--title-color);
     margin-bottom: 30px;
     text-align: center;
+    font-family: var(--font-title);
+    font-weight: 700;
 }
 
 .cards-resumo {
@@ -217,25 +341,26 @@ body {
 }
 
 .card-info.receitas {
-    background: linear-gradient(135deg, #52c234 0%, #3a9e25 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
 .card-info.contas {
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
 
 .card-info.dividas {
-    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
 .card-info.disponivel {
-    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
 
 .card-info h3 {
     font-size: 1rem;
     margin-bottom: 10px;
     opacity: 0.9;
+    font-weight: 600;
 }
 
 .card-info .valor {
@@ -248,50 +373,67 @@ body {
 }
 
 .secao-detalhes h2 {
-    color: #C8A046;
+    color: var(--title-color);
     margin-bottom: 20px;
+    font-family: var(--font-title);
+    font-weight: 600;
 }
 
 #detalhes-dividas {
-    background: #f9f9f9;
+    background: rgba(255, 255, 255, 0.05);
     padding: 20px;
     border-radius: 10px;
 }
 
 .divida-item {
-    background: white;
+    background: rgba(255, 255, 255, 0.08);
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 15px;
-    border-left: 4px solid #f39c12;
+    border-left: 4px solid #f59e0b;
+    color: var(--label-color);
 }
 
 .btn-resetar {
     margin-top: 30px;
     width: 100%;
     padding: 15px;
-    background: #E8C547;
+    background: var(--input-focus);
     color: white;
     border: none;
     border-radius: 10px;
     font-size: 1rem;
-    font-weight: bold;
+    font-weight: 600;
+    font-family: var(--font-body);
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
 }
 
 .btn-resetar:hover {
-    background: #C8A046;
+    background: #2563eb;
+    transform: translateY(-2px);
 }
 
+/* ===========================
+   RESPONSIVO
+   =========================== */
 @media (max-width: 600px) {
     .titulo-principal {
-        font-size: 2rem;
+        font-size: 2.2rem;
+    }
+    
+    .card-central {
+        padding: 40px 30px;
+    }
+    
+    .card-wizard {
+        padding: 30px 20px;
     }
     
     .cards-resumo {
         grid-template-columns: 1fr;
     }
+<<<<<<< HEAD
 }
 
 /* Tela de Autenticação */
@@ -479,3 +621,15 @@ body {
         width: 100%;
     }
 }
+=======
+    
+    .botoes-navegacao {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .btn-voltar, .btn-proximo {
+        width: 100%;
+    }
+}
+>>>>>>> 7d0570f (feat/Novo Design)

@@ -464,3 +464,16 @@ function resetar() {
         fazerLogout();
     }
 }
+
+// Expor funções globalmente para uso em onclick handlers
+window.iniciarWizard = iniciarWizard;
+window.proximoPasso = proximoPasso;
+window.voltarPasso = voltarPasso;
+window.adicionarReceita = adicionarReceita;
+window.removerReceita = removerReceita;
+window.adicionarConta = adicionarConta;
+window.removerConta = removerConta;
+window.adicionarDivida = adicionarDivida;
+window.removerDivida = removerDivida;
+window.finalizarWizard = finalizarWizard;
+window.resetar = resetar;
