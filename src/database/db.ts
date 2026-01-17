@@ -2,11 +2,11 @@ import postgres from 'postgres';
 
 // Configuração da conexão
 const sql = postgres({
-    host: 'localhost',
-    port: 5432,
-    database: 'controle_financeiro', // ou o nome que você quiser
-    username: 'postgres',
-    password: 'Senh@5813',
+    host: process.env.DB_HOST || null,
+    port: parseInt(process.env.DB_PORT || '5432'),
+    database: process.env.DB_NAME || 'controle_financeiro',
+    username: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || 'Senh@5813',
 });
 
 // Função pra inicializar as tabelas

@@ -390,3 +390,92 @@ body {
 .btn-logout:hover {
     background: #ee5a52;
 }
+
+/* Botões na tela inicial */
+.botoes-auth {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-auth-inicial {
+    border: none;
+    padding: 20px 50px;
+    font-size: 1.3rem;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    transition: all 0.3s;
+    min-width: 200px;
+}
+
+.btn-auth-inicial.login {
+    background: white;
+    color: #C8A046;
+    border: 3px solid rgba(200, 160, 70, 0.8);
+}
+
+.btn-auth-inicial.login:hover {
+    background: rgba(200, 160, 70, 0.9);
+    color: white;
+    transform: scale(1.05);
+}
+
+.btn-auth-inicial.cadastro {
+    background: rgba(150, 120, 50, 0.9);
+    color: white;
+}
+
+.btn-auth-inicial.cadastro:hover {
+    background: rgba(130, 100, 40, 1);
+    transform: scale(1.05);
+}
+
+/* Botão voltar */
+.btn-voltar-inicial {
+    background: transparent;
+    border: none;
+    color: #C8A046;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-bottom: 20px;
+    padding: 10px;
+    transition: all 0.3s;
+}
+
+.btn-voltar-inicial:hover {
+    color: #E8C547;
+    transform: translateX(-5px);
+}
+
+/* Link para trocar entre login e cadastro */
+.link-trocar {
+    text-align: center;
+    margin-top: 20px;
+    color: #666;
+}
+
+.link-auth {
+    color: #E8C547;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.link-auth:hover {
+    color: #C8A046;
+}
+
+/* Responsivo */
+@media (max-width: 600px) {
+    .botoes-auth {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-auth-inicial {
+        width: 100%;
+    }
+}

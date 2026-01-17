@@ -1,25 +1,20 @@
+// URL da API
 const API_URL = 'http://localhost:4000';
 
-function mostrarFormulario(tipo){
-    document.getElementById('form-login').style.display = 'none';
-    document.getElementById('form-cadastro').style.display = 'none';
+// Dados temporários do wizard
+let dadosTemporarios = {
+    receitas: [],
+    contas: [],
+    dividas: []
+};
 
-    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+// ========================================
+// AUTENTICAÇÃO
+// ========================================
 
-    if (tipo === 'login'){
-        document.getElementById('form-login').style.display = 'flex';
-        document.querySelectorAll('.tab')[0].classList.add('active');
-    } else {
-        document.getElementById('form-cadastro').style.display = 'flex';
-        document.querySelectorAll('.tab')[1].classList.add('active');
-    }
-
-    document.getElementById('erro-login').textContent = '';
-    document.querySelectorAll('.tab')[1].classList.add('active');
-}
-
-async function fazerCadastro(){
-     const nome = document.getElementById('cadastro-nome').value;
+// Função de CADASTRO
+async function fazerCadastro() {
+    const nome = document.getElementById('cadastro-nome').value;
     const email = document.getElementById('cadastro-email').value;
     const senha = document.getElementById('cadastro-senha').value;
 
@@ -29,20 +24,20 @@ async function fazerCadastro(){
     }
 
     if (senha.length < 6) {
-        document.getElementById('erro-cadastro').textContent = 'Senha deve ter no mínimo 6 caracteres';
+        document.getElementById('erro-cadastro').textContent = 'Senha deve ter no mínimo 6 caracteres!';
         return;
     }
 
     try {
         const response = await fetch(`${API_URL}/auth/cadastro`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json' },
-            body: JSON.stringify({nome, email, senha})
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, email, senha })
         });
 
         const dados = await response.json();
 
-        if (dados.erros) {
+        if (dados.error) {
             document.getElementById('erro-cadastro').textContent = dados.error;
             return;
         }
@@ -50,27 +45,26 @@ async function fazerCadastro(){
         localStorage.setItem('token', dados.token);
         localStorage.setItem('usuario', JSON.stringify(dados.usuario));
 
-        mostrarTela('tela-inicial');
+        // Usuário novo vai direto pro wizard
+        mostrarTela('passo-1');
 
     } catch (error) {
         console.error('Erro no cadastro:', error);
-        document.getElementById('erro-cadastro').textContent = 'Erro ao cadastrar. Tente novamente';
+        document.getElementById('erro-cadastro').textContent = 'Erro ao cadastrar. Tente novamente!';
     }
 }
 
+// Função de LOGIN
 async function fazerLogin() {
-    // Pega os valores dos campos
     const email = document.getElementById('login-email').value;
     const senha = document.getElementById('login-senha').value;
     
-    // Validação básica
     if (!email || !senha) {
         document.getElementById('erro-login').textContent = 'Preencha todos os campos!';
         return;
     }
     
     try {
-        // Faz a requisição pra API
         const response = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -79,18 +73,16 @@ async function fazerLogin() {
         
         const dados = await response.json();
         
-        // Se deu erro
         if (dados.error) {
             document.getElementById('erro-login').textContent = dados.error;
             return;
         }
         
-        // Sucesso! Salva o token e o usuário
         localStorage.setItem('token', dados.token);
         localStorage.setItem('usuario', JSON.stringify(dados.usuario));
         
-        // Vai pra tela inicial
-        mostrarTela('tela-inicial');
+        // Verifica se já tem dados cadastrados
+        verificarSePrimeiroAcesso();
         
     } catch (error) {
         console.error('Erro no login:', error);
@@ -100,19 +92,16 @@ async function fazerLogin() {
 
 // Função de LOGOUT
 function fazerLogout() {
-    // Remove token e usuário do localStorage
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     
-    // Reseta os dados temporários
     dadosTemporarios = {
         receitas: [],
         contas: [],
         dividas: []
     };
     
-    // Volta pra tela de autenticação
-    mostrarTela('tela-auth');
+    mostrarTela('tela-inicial');
 }
 
 // Função pra pegar o token salvo
@@ -125,12 +114,38 @@ function verificarAutenticacao() {
     const token = getToken();
     
     if (!token) {
-        // Não tá logado, vai pra tela de login
-        mostrarTela('tela-auth');
+        mostrarTela('tela-inicial');
         return false;
     }
     
+    verificarSePrimeiroAcesso();
     return true;
+}
+
+// Verifica se é primeiro acesso (se tem dados cadastrados)
+async function verificarSePrimeiroAcesso() {
+    const token = getToken();
+    
+    try {
+        const response = await fetch(`${API_URL}/receitas`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const receitas = await response.json();
+        
+        if (receitas.length === 0) {
+            // Não tem dados = vai pro wizard
+            mostrarTela('passo-1');
+        } else {
+            // Já tem dados = vai pro dashboard
+            await carregarDashboard();
+            mostrarTela('dashboard');
+        }
+        
+    } catch (error) {
+        console.error('Erro ao verificar dados:', error);
+        mostrarTela('tela-inicial');
+    }
 }
 
 // Quando a página carregar, verifica se está logado
@@ -138,19 +153,39 @@ window.addEventListener('DOMContentLoaded', () => {
     verificarAutenticacao();
 });
 
-// Dados temporários do wizard
-let dadosTemporarios = {
-    receitas: [],
-    contas: [],
-    dividas: []
-};
+// ========================================
+// NAVEGAÇÃO
+// ========================================
 
-// Funções de navegação
 function mostrarTela(idTela) {
     document.querySelectorAll('.tela').forEach(tela => {
         tela.classList.remove('active');
     });
     document.getElementById(idTela).classList.add('active');
+}
+
+// Navegar para tela de login
+function mostrarLogin() {
+    document.getElementById('login-email').value = '';
+    document.getElementById('login-senha').value = '';
+    document.getElementById('erro-login').textContent = '';
+    
+    mostrarTela('tela-login');
+}
+
+// Navegar para tela de cadastro
+function mostrarCadastro() {
+    document.getElementById('cadastro-nome').value = '';
+    document.getElementById('cadastro-email').value = '';
+    document.getElementById('cadastro-senha').value = '';
+    document.getElementById('erro-cadastro').textContent = '';
+    
+    mostrarTela('tela-cadastro');
+}
+
+// Voltar para tela inicial
+function voltarParaInicial() {
+    mostrarTela('tela-inicial');
 }
 
 function iniciarWizard() {
@@ -165,7 +200,10 @@ function voltarPasso(passo) {
     mostrarTela(`passo-${passo}`);
 }
 
-// Passo 1: Receitas
+// ========================================
+// WIZARD - PASSO 1: RECEITAS
+// ========================================
+
 function adicionarReceita() {
     const descricao = document.getElementById('descricao-receita').value;
     const valor = parseFloat(document.getElementById('valor-receita').value);
@@ -177,11 +215,9 @@ function adicionarReceita() {
 
     dadosTemporarios.receitas.push({ descricao, valor });
     
-    // Limpar campos
     document.getElementById('descricao-receita').value = '';
     document.getElementById('valor-receita').value = '';
     
-    // Atualizar lista visual
     renderizarReceitas();
 }
 
@@ -205,7 +241,10 @@ function removerReceita(index) {
     renderizarReceitas();
 }
 
-// Passo 2: Contas
+// ========================================
+// WIZARD - PASSO 2: CONTAS FIXAS
+// ========================================
+
 function adicionarConta() {
     const descricao = document.getElementById('descricao-conta').value;
     const valor = parseFloat(document.getElementById('valor-conta').value);
@@ -218,7 +257,6 @@ function adicionarConta() {
 
     dadosTemporarios.contas.push({ descricao, valor, dia_vencimento: diaVencimento });
     
-    // Limpar campos
     document.getElementById('descricao-conta').value = '';
     document.getElementById('valor-conta').value = '';
     document.getElementById('dia-vencimento').value = '';
@@ -246,7 +284,10 @@ function removerConta(index) {
     renderizarContas();
 }
 
-// Passo 3: Dívidas
+// ========================================
+// WIZARD - PASSO 3: DÍVIDAS
+// ========================================
+
 function adicionarDivida() {
     const descricao = document.getElementById('descricao-divida').value;
     const valorTotal = parseFloat(document.getElementById('valor-total-divida').value);
@@ -268,7 +309,6 @@ function adicionarDivida() {
         data_inicio: new Date().toISOString().split('T')[0]
     });
     
-    // Limpar campos
     document.getElementById('descricao-divida').value = '';
     document.getElementById('valor-total-divida').value = '';
     document.getElementById('valor-parcela-divida').value = '';
@@ -302,7 +342,10 @@ function removerDivida(index) {
     renderizarDividas();
 }
 
-// Finalizar e salvar na API
+// ========================================
+// FINALIZAR WIZARD E SALVAR NA API
+// ========================================
+
 async function finalizarWizard() {
     const token = getToken();
 
@@ -332,7 +375,6 @@ async function finalizarWizard() {
                 headers: { 
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
-                
                 },
                 body: JSON.stringify(conta)
             });
@@ -360,23 +402,26 @@ async function finalizarWizard() {
     }
 }
 
-// Carregar e exibir dashboard
+// ========================================
+// DASHBOARD
+// ========================================
+
 async function carregarDashboard() {
     const token = getToken();
 
-    if (!token){
-        lert('Você não está logado!');
+    if (!token) {
+        alert('Você não está logado!');
         fazerLogout();
         return;
     }
 
     try {
         const response = await fetch(`${API_URL}/dashboard/resumo`, {
-                method: 'GET',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
+            method: 'GET',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
         });
 
         const dados = await response.json();
