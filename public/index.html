@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cash Tracking</title>
-<<<<<<< HEAD
-=======
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
->>>>>>> 7d0570f (feat/Novo Design)
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,15 +15,65 @@
         <div id="tela-inicial" class="tela active">
             <div class="card-central">
                 <h1 class="titulo-principal">Cash Tracking</h1>
-<<<<<<< HEAD
-                <button class="btn-comecar" onclick="iniciarWizard()">COMEÇAR</button>
-=======
                 <label for="email-login">E-mail</label>
                 <input type="email" id="email-login" placeholder="seu@email.com">
                 <label for="senha-login">Senha</label>
                 <input type="password" id="senha-login" placeholder="********">
-                <button class="btn-comecar" onclick="iniciarWizard()">Cadastro</button>
->>>>>>> 7d0570f (feat/Novo Design)
+                <button class="btn-comecar" onclick="mostrarLogin()">Entrar</button>
+                <button class="btn-cadastro" onclick="mostrarEscolha()">Começar</button>
+            </div>
+        </div>
+
+        <!-- Tela de Escolha: Cadastro ou Test-Drive -->
+<div id="tela-escolha" class="tela">
+    <div class="card-central">
+        <h2 class="titulo-escolha">Você prefere se cadastrar direto ou fazer um test-drive antes?</h2>
+        
+        <div class="opcao-card" onclick="mostrarCadastro()">
+            <div class="radio-custom"></div>
+            <div class="opcao-texto">
+                <h3>Cadastro</h3>
+                <p>Perguntas simples para salvarmos suas infos</p>
+            </div>
+        </div>
+        
+        <div class="opcao-card" onclick="iniciarTestDrive()">
+            <div class="radio-custom"></div>
+            <div class="opcao-texto">
+                <h3>Test-Drive</h3>
+                <p>Conecte com seu extrato e veja o que oferecemos</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <!-- Tela de Login -->
+        <div id="tela-login" class="tela">
+            <div class="card-central">
+                <h1 class="titulo-principal">Login</h1>
+                <label for="login-email">E-mail</label>
+                <input type="email" id="login-email" placeholder="seu@email.com">
+                <label for="login-senha">Senha</label>
+                <input type="password" id="login-senha" placeholder="********">
+                <p id="erro-login" style="color: #ef4444; margin-top: 10px; font-size: 0.9rem;"></p>
+                <button class="btn-comecar" onclick="fazerLogin()">Entrar</button>
+                <button class="btn-secundario" onclick="voltarParaInicial()">Voltar</button>
+            </div>
+        </div>
+
+        <!-- Tela de Cadastro -->
+        <div id="tela-cadastro" class="tela">
+            <div class="card-central">
+                <h1 class="titulo-principal">Cadastro</h1>
+                <label for="cadastro-nome">Nome</label>
+                <input type="text" id="cadastro-nome" placeholder="Seu nome completo">
+                <label for="cadastro-email">E-mail</label>
+                <input type="email" id="cadastro-email" placeholder="seu@email.com">
+                <label for="cadastro-senha">Senha</label>
+                <input type="password" id="cadastro-senha" placeholder="Mínimo 6 caracteres">
+                <p id="erro-cadastro" style="color: #ef4444; margin-top: 10px; font-size: 0.9rem;"></p>
+                <button class="btn-comecar" onclick="fazerCadastro()">Cadastrar</button>
+                <button class="btn-secundario" onclick="voltarParaInicial()">Voltar</button>
             </div>
         </div>
 

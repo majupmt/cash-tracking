@@ -1,5 +1,5 @@
 // URL da API
-const API_URL = 'http://localhost:4000';
+const API_URL = 'http://localhost:3000';
 
 // Dados temporários do wizard
 let dadosTemporarios = {
@@ -465,6 +465,21 @@ function resetar() {
     }
 }
 
+// Mostrar tela de escolha
+function mostrarEscolha() {
+    mostrarTela('tela-escolha');
+}
+
+// Iniciar test-drive (wizard sem salvar)
+function iniciarTestDrive() {
+    // Vai direto pro wizard sem autenticação
+    mostrarTela('passo-1');
+}
+
+// Exporta as novas funções
+window.mostrarEscolha = mostrarEscolha;
+window.iniciarTestDrive = iniciarTestDrive;
+
 // Expor funções globalmente para uso em onclick handlers
 window.iniciarWizard = iniciarWizard;
 window.proximoPasso = proximoPasso;
@@ -477,3 +492,8 @@ window.adicionarDivida = adicionarDivida;
 window.removerDivida = removerDivida;
 window.finalizarWizard = finalizarWizard;
 window.resetar = resetar;
+window.mostrarLogin = mostrarLogin;
+window.mostrarCadastro = mostrarCadastro;
+window.fazerLogin = fazerLogin;
+window.fazerCadastro = fazerCadastro;
+window.voltarParaInicial = voltarParaInicial;
