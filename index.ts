@@ -7,6 +7,7 @@ import { receitasRoutes } from './src/routes/receitas';
 import { dividasRoutes } from './src/routes/dividas';
 import { contasRoutes } from './src/routes/contas';
 import { dashboardRoutes } from './src/routes/dashboard';
+import { extratoRoutes } from './src/routes/extrato';
 
 async function start() {
     await initDatabase();
@@ -24,6 +25,7 @@ async function start() {
         .use(dividasRoutes)
         .use(contasRoutes)
         .use(dashboardRoutes)
+        .use(extratoRoutes)
         .listen(4000);
 
     console.log(`🚀 Servidor rodando em http://localhost:4000`);

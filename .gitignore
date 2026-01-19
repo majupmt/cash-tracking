@@ -1,5 +1,31 @@
+# Dependências
 node_modules/
 bun.lockb
-*.db
+
+# Ambiente
 .env
-*.sql
+.env.local
+.env.*.local
+
+# Arquivos temporários
+uploads/
+*.log
+
+# Build
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Banco de dados local
+*.sqlite
+*.db

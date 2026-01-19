@@ -1,4 +1,4 @@
-import { runMigrations } from './database/migrations';
+import { runMigrations } from './migrations';
 
 async function main() {
     await runMigrations();

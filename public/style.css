@@ -283,6 +283,13 @@ body {
     margin-bottom: 30px;
 }
 
+.form-group label {
+    color: var(--label-color);
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: -10px;
+}
+
 .input-field {
     padding: 15px 18px;
     background: var(--input-bg);
@@ -589,6 +596,8 @@ body {
     color: var(--text-muted);
     font-size: 0.9rem;
     margin-bottom: 20px;
+    font-family: var(--font-title);
+    font-weight: 600;
 }
 
 .input-group-receita {

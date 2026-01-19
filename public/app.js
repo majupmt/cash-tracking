@@ -1,5 +1,5 @@
 // URL da API
-const API_URL = 'http://localhost:4000';
+const API_URL = 'http://localhost:3000';
 
 // Dados temporários
 let dadosTemporarios = {
