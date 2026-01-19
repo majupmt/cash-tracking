@@ -4,28 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cash Tracking</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <!-- Tela Inicial -->
+    <!-- TELA 1: LOGIN/INICIAL -->
+    <div class="container" id="container-auth">
         <div id="tela-inicial" class="tela active">
             <div class="card-central">
                 <h1 class="titulo-principal">Cash Tracking</h1>
-                <button class="btn-comecar" onclick="iniciarWizard()">COMEÇAR</button>
+                
+                <label for="login-email">E-mail</label>
+                <input type="email" id="login-email" placeholder="seu@email.com">
+                
+                <label for="login-senha">Senha</label>
+                <input type="password" id="login-senha" placeholder="********">
+                
+                <p class="erro-mensagem" id="erro-login"></p>
+
+                <button class="btn-comecar" onclick="fazerLogin()">Entrar</button>
+                <button class="btn-secundario" onclick="mostrarEscolha()">Começar</button>
             </div>
         </div>
 
-        <!-- Wizard - Passo 1: Receitas -->
+        <!-- TELA 2: ESCOLHA (Cadastro ou Test-Drive) -->
+        <div id="tela-escolha" class="tela">
+            <div class="card-central">
+                <h2 class="titulo-escolha">Você prefere se cadastrar direto ou fazer um test-drive antes?</h2>
+                
+                <div class="opcao-card" onclick="mostrarCadastro()">
+                    <div class="radio-custom"></div>
+                    <div class="opcao-texto">
+                        <h3>Cadastro</h3>
+                        <p>Perguntas simples para salvarmos suas infos</p>
+                    </div>
+                </div>
+                
+                <div class="opcao-card" onclick="iniciarTestDrive()">
+                    <div class="radio-custom"></div>
+                    <div class="opcao-texto">
+                        <h3>Test-Drive</h3>
+                        <p>Conecte com seu extrato e veja o que oferecemos</p>
+                    </div>
+                </div>
+
+                <button class="btn-secundario" onclick="voltarParaInicial()">Voltar</button>
+            </div>
+        </div>
+
+        <!-- TELA 3: CADASTRO -->
+        <div id="tela-cadastro" class="tela">
+            <div class="card-central">
+                <h1 class="titulo-principal">Cadastro</h1>
+                
+                <label for="cadastro-nome">Nome</label>
+                <input type="text" id="cadastro-nome" placeholder="Seu nome completo">
+                
+                <label for="cadastro-email">E-mail</label>
+                <input type="email" id="cadastro-email" placeholder="seu@email.com">
+                
+                <label for="cadastro-senha">Senha</label>
+                <input type="password" id="cadastro-senha" placeholder="Mínimo 6 caracteres">
+                
+                <p class="erro-mensagem" id="erro-cadastro"></p>
+
+                <button class="btn-comecar" onclick="fazerCadastro()">Cadastrar</button>
+                <button class="btn-secundario" onclick="voltarParaInicial()">Voltar</button>
+            </div>
+        </div>
+
+        <!-- WIZARD - Passo 1: Receitas -->
         <div id="passo-1" class="tela">
             <div class="card-wizard">
                 <div class="progresso">
-                    <div class="barra-progresso" style="width: 25%"></div>
+                    <div class="barra-progresso" style="width: 33%"></div>
                 </div>
-                <h2>💰 Quanto vocês recebem por mês?</h2>
+                <h2>💰 Quanto você recebe por mês?</h2>
                 <div id="lista-receitas"></div>
                 <div class="form-group">
-                    <input type="text" id="descricao-receita" placeholder="Ex: Salário Maria" class="input-field">
+                    <input type="text" id="descricao-receita" placeholder="Ex: Salário" class="input-field">
                     <input type="number" id="valor-receita" placeholder="Valor (R$)" class="input-field">
                     <button onclick="adicionarReceita()" class="btn-adicionar">+ Adicionar</button>
                 </div>
@@ -33,11 +90,11 @@
             </div>
         </div>
 
-        <!-- Wizard - Passo 2: Contas Fixas -->
+        <!-- WIZARD - Passo 2: Contas -->
         <div id="passo-2" class="tela">
             <div class="card-wizard">
                 <div class="progresso">
-                    <div class="barra-progresso" style="width: 50%"></div>
+                    <div class="barra-progresso" style="width: 66%"></div>
                 </div>
                 <h2>🏠 Quais são as contas fixas?</h2>
                 <div id="lista-contas"></div>
@@ -54,20 +111,18 @@
             </div>
         </div>
 
-        <!-- Wizard - Passo 3: Dívidas -->
+        <!-- WIZARD - Passo 3: Dívidas -->
         <div id="passo-3" class="tela">
             <div class="card-wizard">
                 <div class="progresso">
-                    <div class="barra-progresso" style="width: 75%"></div>
+                    <div class="barra-progresso" style="width: 100%"></div>
                 </div>
                 <h2>💳 Tem alguma dívida?</h2>
                 <div id="lista-dividas"></div>
                 <div class="form-group">
-                    <input type="text" id="descricao-divida" placeholder="Ex: Empréstimo banco" class="input-field">
-                    <input type="number" id="valor-total-divida" placeholder="Valor total (R$)" class="input-field">
+                    <input type="text" id="descricao-divida" placeholder="Ex: Cartão" class="input-field">
                     <input type="number" id="valor-parcela-divida" placeholder="Valor parcela (R$)" class="input-field">
                     <input type="number" id="parcelas-total" placeholder="Total de parcelas" class="input-field">
-                    <input type="number" id="parcelas-pagas" placeholder="Parcelas já pagas" class="input-field" value="0">
                     <button onclick="adicionarDivida()" class="btn-adicionar">+ Adicionar</button>
                 </div>
                 <div class="botoes-navegacao">
@@ -76,40 +131,142 @@
                 </div>
             </div>
         </div>
-
-        <!-- Dashboard Final -->
-        <div id="dashboard" class="tela">
-            <div class="dashboard-container">
-                <h1>📊 Seu Resumo Financeiro</h1>
-                <div class="cards-resumo">
-                    <div class="card-info receitas">
-                        <h3>💰 Receitas</h3>
-                        <p class="valor" id="total-receitas">R$ 0,00</p>
-                    </div>
-                    <div class="card-info contas">
-                        <h3>🏠 Contas Fixas</h3>
-                        <p class="valor" id="total-contas">R$ 0,00</p>
-                    </div>
-                    <div class="card-info dividas">
-                        <h3>💳 Dívidas (mês)</h3>
-                        <p class="valor" id="total-dividas">R$ 0,00</p>
-                    </div>
-                    <div class="card-info disponivel">
-                        <h3>✨ Disponível</h3>
-                        <p class="valor" id="total-disponivel">R$ 0,00</p>
-                    </div>
-                </div>
-                
-                <div class="secao-detalhes">
-                    <h2>📋 Detalhes das Dívidas</h2>
-                    <div id="detalhes-dividas"></div>
-                </div>
-
-                <button onclick="resetar()" class="btn-resetar">🔄 Recomeçar</button>
-            </div>
-        </div>
     </div>
 
-    <script src="app.js"></script>
+    <!-- DASHBOARD -->
+    <div class="dashboard-layout" id="dashboard-layout" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2 class="sidebar-logo">💰 Cash Tracking</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="menu-item active" onclick="navegarPara('dashboard')">
+                    <span class="menu-icon">📊</span>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+                <a href="#" class="menu-item" onclick="navegarPara('upload')">
+                    <span class="menu-icon">📤</span>
+                    <span class="menu-text">Upload Extrato</span>
+                </a>
+                <a href="#" class="menu-item" onclick="navegarPara('insights')">
+                    <span class="menu-icon">💡</span>
+                    <span class="menu-text">Insights da IA</span>
+                </a>
+                <a href="#" class="menu-item" onclick="navegarPara('planejamento')">
+                    <span class="menu-icon">📅</span>
+                    <span class="menu-text">Planejamento</span>
+                </a>
+                <a href="#" class="menu-item" onclick="navegarPara('compartilhado')">
+                    <span class="menu-icon">👥</span>
+                    <span class="menu-text">Compartilhado</span>
+                </a>
+                <a href="#" class="menu-item" onclick="navegarPara('config')">
+                    <span class="menu-icon">⚙️</span>
+                    <span class="menu-text">Configurações</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <section class="content-section active" id="section-dashboard">
+                <div class="dashboard-header">
+                    <h1>Olá, <span id="user-greeting">Usuário</span>!</h1>
+                    <p class="dashboard-subtitle" id="mes-atual">Janeiro 2026</p>
+                </div>
+
+                <div class="cards-grid">
+                    <!-- Card Receita -->
+                    <div class="card card-receita">
+                        <div class="card-header">
+                            <span class="card-icon">💰</span>
+                            <h3>Qual sua receita desse mês?</h3>
+                        </div>
+                        <p class="card-subtitle">Arredonde se necessário!</p>
+                        <div class="input-group-receita">
+                            <span class="input-prefix">R$</span>
+                            <input type="number" id="input-receita-mes" placeholder="0,00" step="0.01">
+                        </div>
+                        <button class="btn-salvar" onclick="salvarReceitaMes()">Salvar</button>
+                    </div>
+
+                    <!-- Card Seu Mês -->
+                    <div class="card card-seu-mes">
+                        <div class="card-header">
+                            <h3>Seu mês</h3>
+                        </div>
+                        <ul class="resumo-lista">
+                            <li>
+                                <span class="bullet gasto"></span>
+                                <span class="label">Gasto:</span>
+                                <span class="valor" id="valor-gasto">R$ 0,00</span>
+                            </li>
+                            <li>
+                                <span class="bullet receita"></span>
+                                <span class="label">Receita:</span>
+                                <span class="valor" id="valor-receita-display">R$ 0,00</span>
+                            </li>
+                            <li>
+                                <span class="bullet sobra"></span>
+                                <span class="label">Sobra:</span>
+                                <span class="valor" id="valor-sobra">R$ 0,00</span>
+                            </li>
+                        </ul>
+                        <button class="btn-insight" onclick="mostrarInsightOrganizacao()">Insight de organização</button>
+                    </div>
+                </div>
+
+                <!-- Chat IA -->
+                <div class="card card-chat">
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="chat-welcome">
+                            <span class="chat-icon">🤖</span>
+                            <p>Olá! Sou seu assistente financeiro. Como posso ajudar?</p>
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chat-input" placeholder="Assistente de organização financeira, mande uma mensagem" onkeypress="if(event.key==='Enter') enviarMensagemChat()">
+                        <div class="chat-actions">
+                            <button class="chat-btn">📎</button>
+                            <button class="chat-btn">&lt;/&gt;</button>
+                            <button class="chat-btn">🎤</button>
+                            <button class="chat-send" onclick="enviarMensagemChat()">➤</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-section" id="section-upload">
+                <h1>Upload Extrato</h1>
+                <p>Em breve...</p>
+            </section>
+
+            <section class="content-section" id="section-insights">
+                <h1>Insights da IA</h1>
+                <p>Em breve...</p>
+            </section>
+
+            <section class="content-section" id="section-planejamento">
+                <h1>Planejamento</h1>
+                <p>Em breve...</p>
+            </section>
+
+            <section class="content-section" id="section-compartilhado">
+                <h1>Compartilhado</h1>
+                <p>Em breve...</p>
+            </section>
+
+            <section class="content-section" id="section-config">
+                <h1>Configurações</h1>
+                <p>Em breve...</p>
+            </section>
+        </main>
+    </div>
+
+    <script src="/app.js"></script>
 </body>
 </html>

@@ -1,10 +1,11 @@
-import { Elysia } from 'elysia';
+import { Elysia, t } from 'elysia';
 import sql from '../database/db';
 import { extrairUsuarioDoHeader } from '../middleware/auth';
+import { DashboardService } from '../services/dashboard';
 
 export const dashboardRoutes = new Elysia({ prefix: '/dashboard' })
 
-    // Resumo geral do mês atual
+    // Resumo geral do mês atual (formato antigo - mantido para compatibilidade)
     .get('/resumo', async ({ headers, set }) => {
         try {
             const { userId } = extrairUsuarioDoHeader(headers.authorization || null);
@@ -55,6 +56,64 @@ export const dashboardRoutes = new Elysia({ prefix: '/dashboard' })
                 dividas_detalhes: dividas,
                 resumo: `Receitas: R$ ${totalReceitas.toFixed(2)} | Gastos fixos: R$ ${gastosMensais.toFixed(2)} | Disponível: R$ ${disponivel.toFixed(2)}`
             };
+        } catch (error) {
+            set.status = 401;
+            return { error: 'Não autorizado' };
+        }
+    })
+
+    // Nova rota: Dashboard data completo (novo formato para o design do Figma)
+    .get('/data', async ({ headers, set }) => {
+        try {
+            const { userId } = extrairUsuarioDoHeader(headers.authorization || null);
+            return await DashboardService.getDashboardData(userId);
+        } catch (error) {
+            set.status = 401;
+            return { error: 'Não autorizado' };
+        }
+    })
+
+    // Nova rota: Atualizar receita do mês
+    .post('/atualizar-receita-mes', async ({ headers, body, set }) => {
+        try {
+            const { userId } = extrairUsuarioDoHeader(headers.authorization || null);
+            const { valor } = body as { valor: number };
+
+            if (typeof valor !== 'number' || valor < 0) {
+                set.status = 400;
+                return { error: 'Valor inválido' };
+            }
+
+            return await DashboardService.atualizarReceitaMes(userId, valor);
+        } catch (error) {
+            set.status = 401;
+            return { error: 'Não autorizado' };
+        }
+    })
+
+    // Nova rota: Chat com IA
+    .post('/chat-ia', async ({ headers, body, set }) => {
+        try {
+            const { userId } = extrairUsuarioDoHeader(headers.authorization || null);
+            const { mensagem } = body as { mensagem: string };
+
+            if (!mensagem || typeof mensagem !== 'string') {
+                set.status = 400;
+                return { error: 'Mensagem inválida' };
+            }
+
+            return await DashboardService.processarMensagemIA(userId, mensagem);
+        } catch (error) {
+            set.status = 401;
+            return { error: 'Não autorizado' };
+        }
+    })
+
+    // Nova rota: Insight de organização
+    .get('/insight-organizacao', async ({ headers, set }) => {
+        try {
+            const { userId } = extrairUsuarioDoHeader(headers.authorization || null);
+            return await DashboardService.getInsightOrganizacao(userId);
         } catch (error) {
             set.status = 401;
             return { error: 'Não autorizado' };
