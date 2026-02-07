@@ -1,12 +1,16 @@
 import postgres from 'postgres';
 
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+    throw new Error("❌ A variável DATABASE_URL não foi definida no arquivo .env");
+}
+
 // Configuração da conexão
-const sql = postgres({
-    host: process.env.DB_HOST || null,
-    port: parseInt(process.env.DB_PORT || '5432'),
-    database: process.env.DB_NAME || 'controle_financeiro',
-    username: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'Senh@5813',
+const sql = postgres(connectionString, {
+    ssl: 'require', // Obrigatório para Supabase
+    idle_timeout: 20,
+    connect_timeout: 10,
 });
 
 // Função pra inicializar as tabelas

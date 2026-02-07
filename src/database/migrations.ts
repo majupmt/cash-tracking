@@ -28,6 +28,18 @@ export async function runMigrations() {
             ADD COLUMN IF NOT EXISTS usuario_id INTEGER;
         `;
 
+        // Adicionar coluna pago em contas_fixas (para toggle de status)
+        await sql`
+            ALTER TABLE contas_fixas
+            ADD COLUMN IF NOT EXISTS pago BOOLEAN DEFAULT false
+        `;
+
+        // Adicionar coluna categoria em contas_fixas
+        await sql`
+            ALTER TABLE contas_fixas
+            ADD COLUMN IF NOT EXISTS categoria TEXT DEFAULT 'Outros'
+        `;
+
         // Criar tabela receitas_mensais para armazenar a receita definida pelo usuário
         await sql`
             CREATE TABLE IF NOT EXISTS receitas_mensais (

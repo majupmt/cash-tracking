@@ -8,6 +8,7 @@ import { contasRoutes } from './src/routes/contas';
 import { dashboardRoutes } from './src/routes/dashboard';
 import { extratoRoutes } from './src/routes/extrato';
 import { transacoesRoutes } from './src/routes/transacoes';
+import { uploadRoutes } from './src/routes/upload';
 import { requestLogger } from './src/middleware/request-logger';
 import { logger } from './src/lib/logger';
 import { metrics } from './src/lib/metrics';
@@ -48,6 +49,7 @@ async function start() {
         .use(dashboardRoutes)
         .use(extratoRoutes)
         .use(transacoesRoutes)
+        .use(uploadRoutes)
         .listen(4000);
 
     logger.info('server_start', { port: 4000, env: process.env.NODE_ENV || 'development' });

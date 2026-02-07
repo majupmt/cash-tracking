@@ -1,40 +1,34 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
+
+// Helper: navigate to dashboard via test-drive
+async function goToDashboard(page: Page) {
+  await page.goto('/');
+  await page.getByTestId('btn-go-signup').click();
+  await page.getByTestId('btn-signup-testdrive').click();
+  await expect(page.getByTestId('screen-testdrive')).toBeVisible();
+  await page.getByTestId('testdrive-revenue').fill('4500');
+  await page.getByTestId('btn-go-dashboard').click();
+  await expect(page.getByTestId('screen-dashboard')).toBeVisible();
+}
 
 test.describe('Analise da IA', () => {
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/#/test-drive');
-    await page.getByTestId('btn-demo-data').click();
-    await page.getByTestId('btn-view-dashboard').first().click();
-    await expect(page).toHaveURL(/#\/dashboard/);
+    await goToDashboard(page);
   });
 
-  test('deve exibir card de analise IA', async ({ page }) => {
-    await expect(page.getByTestId('ai-insight-card')).toBeVisible();
-    await expect(page.getByTestId('btn-ai-analyze')).toBeVisible();
+  test('deve exibir card de IA no dashboard', async ({ page }) => {
+    await expect(page.getByTestId('ai-card')).toBeVisible();
   });
 
-  test('deve mostrar analise com efeito typing ao clicar', async ({ page }) => {
-    await page.getByTestId('btn-ai-analyze').click();
-
-    // Aguarda o texto comecar a aparecer
-    await expect(page.getByTestId('ai-insight-text')).toBeVisible({ timeout: 3000 });
-
-    // Verifica que contem conteudo relevante
-    await expect(page.getByTestId('ai-insight-text')).not.toBeEmpty();
+  test('deve exibir botao de insight no header', async ({ page }) => {
+    await expect(page.getByTestId('btn-ai-insight')).toBeVisible();
   });
 
-  test('deve mostrar limite gratuito apos analise', async ({ page }) => {
-    await page.getByTestId('btn-ai-analyze').click();
-
-    // Aguarda analise completar (typing ~3 segundos)
-    await expect(page.getByTestId('ai-free-limit')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByTestId('ai-free-limit')).toContainText('1 de 1');
-  });
-
-  test('botao deve desaparecer apos usar analise', async ({ page }) => {
-    await page.getByTestId('btn-ai-analyze').click();
-    await expect(page.getByTestId('btn-ai-analyze')).not.toBeVisible({ timeout: 5000 });
+  test('deve navegar para view de insights via sidebar', async ({ page }) => {
+    await page.getByTestId('menu-insights').click();
+    await expect(page.getByTestId('view-insights')).toHaveClass(/active/);
+    await expect(page.getByTestId('btn-generate-insight')).toBeVisible();
   });
 
 });

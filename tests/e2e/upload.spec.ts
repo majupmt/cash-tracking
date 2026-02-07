@@ -3,24 +3,44 @@ import path from 'path';
 
 test.describe('Upload de Extrato', () => {
 
-  test('deve fazer upload de CSV e processar', async ({ page }) => {
-    await page.goto('/#/test-drive');
+  // Helper: navigate to test-drive screen
+  async function goToTestDrive(page) {
+    await page.goto('/');
+    await page.getByTestId('btn-go-signup').click();
+    await page.getByTestId('btn-signup-testdrive').click();
+    await expect(page.getByTestId('screen-testdrive')).toBeVisible();
+  }
 
-    const fileInput = page.getByTestId('upload-file-input');
-    await fileInput.setInputFiles(path.join(__dirname, '../fixtures/extrato-teste.csv'));
-
-    // Aguarda processamento
-    await expect(page.getByTestId('upload-progress')).toBeVisible();
-
-    // Aguarda redirecionamento para transacoes
-    await expect(page).toHaveURL(/#\/transacoes/, { timeout: 10000 });
-    await expect(page.getByTestId('transactions-count')).toBeVisible();
+  test('dropzone deve estar visivel na tela de test-drive', async ({ page }) => {
+    await goToTestDrive(page);
+    await expect(page.getByTestId('testdrive-dropzone')).toBeVisible();
   });
 
-  test('drop zone deve estar visivel', async ({ page }) => {
-    await page.goto('/#/test-drive');
-    const dropzone = page.getByTestId('upload-dropzone');
-    await expect(dropzone).toBeVisible();
+  test('deve fazer upload de CSV e mostrar sucesso', async ({ page }) => {
+    await goToTestDrive(page);
+
+    const fileInput = page.getByTestId('testdrive-file-input');
+    await fileInput.setInputFiles(path.join(__dirname, '../fixtures/extrato-teste.csv'));
+
+    // Wait for progress to appear
+    await expect(page.getByTestId('testdrive-progress')).toHaveClass(/visible/, { timeout: 5000 });
+
+    // Wait for success area to appear
+    await expect(page.getByTestId('upload-success-area')).not.toBeEmpty({ timeout: 10000 });
+  });
+
+  test('apos upload, botao dashboard deve estar habilitado', async ({ page }) => {
+    await goToTestDrive(page);
+
+    await page.getByTestId('testdrive-revenue').fill('5000');
+
+    const fileInput = page.getByTestId('testdrive-file-input');
+    await fileInput.setInputFiles(path.join(__dirname, '../fixtures/extrato-teste.csv'));
+
+    // Wait for upload processing
+    await expect(page.getByTestId('upload-success-area')).not.toBeEmpty({ timeout: 10000 });
+
+    await expect(page.getByTestId('btn-go-dashboard')).toBeEnabled();
   });
 
 });

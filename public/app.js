@@ -2,276 +2,586 @@
 // CASH TRACKING — SPA Frontend
 // ========================================
 
-const APP = document.getElementById('app');
+// ========================================
+// MOCK DATA
+// ========================================
+const CATEGORIES = {
+  "Alimentacao": { color: "#f59e0b", icon: "\uD83C\uDF7D" },
+  "Transporte": { color: "#6366f1", icon: "\uD83D\uDE97" },
+  "Saude":      { color: "#10b981", icon: "\uD83D\uDC8A" },
+  "Assinaturas":{ color: "#ec4899", icon: "\uD83D\uDCF1" },
+  "Lazer":      { color: "#8b5cf6", icon: "\uD83C\uDFAE" },
+  "Moradia":    { color: "#0ea5e9", icon: "\uD83C\uDFE0" },
+  "Educacao":   { color: "#14b8a6", icon: "\uD83D\uDCDA" },
+  "Outros":     { color: "#64748b", icon: "\uD83D\uDCE6" }
+};
+
+const MOCK_TRANSACTIONS = [
+  { id: 1,  date: "2026-02-01", desc: "Supermercado BH",     category: "Alimentacao",  value: -248.90 },
+  { id: 2,  date: "2026-02-02", desc: "Uber - trabalho",     category: "Transporte",   value: -35.50 },
+  { id: 3,  date: "2026-02-03", desc: "Netflix",             category: "Assinaturas",  value: -55.90 },
+  { id: 4,  date: "2026-02-05", desc: "iFood",               category: "Alimentacao",  value: -67.80 },
+  { id: 5,  date: "2026-02-06", desc: "Farmacia Drogasil",   category: "Saude",        value: -89.50 },
+  { id: 6,  date: "2026-02-07", desc: "Posto Shell",         category: "Transporte",   value: -210.00 },
+  { id: 7,  date: "2026-02-08", desc: "Spotify Premium",     category: "Assinaturas",  value: -21.90 },
+  { id: 8,  date: "2026-02-10", desc: "Cinema",              category: "Lazer",        value: -42.00 },
+  { id: 9,  date: "2026-02-11", desc: "Padaria Mineira",     category: "Alimentacao",  value: -18.50 },
+  { id: 10, date: "2026-02-12", desc: "Aluguel",             category: "Moradia",      value: -1200.00 },
+  { id: 11, date: "2026-02-13", desc: "Curso Udemy",         category: "Educacao",     value: -29.90 },
+  { id: 12, date: "2026-02-14", desc: "Uber Eats",           category: "Alimentacao",  value: -45.70 }
+];
+
+const MOCK_DEBTS = [
+  { id: 1, desc: "Cartao Nubank",      total: 1850.00, paid: 620.00,  due: "2026-03-10" },
+  { id: 2, desc: "Emprestimo pessoal",  total: 5000.00, paid: 2500.00, due: "2026-06-15" }
+];
+
+const MOCK_FIXED = [
+  { id: 1, desc: "Aluguel",   value: 1200.00, category: "Moradia" },
+  { id: 2, desc: "Internet",  value: 119.90,  category: "Assinaturas" },
+  { id: 3, desc: "Academia",  value: 89.90,   category: "Saude" },
+  { id: 4, desc: "Energia",   value: 180.00,  category: "Moradia" }
+];
 
 // ========================================
 // STATE
 // ========================================
-let state = {
-  transacoes: [],
-  receita: 0,
-  receitaSaved: false,
-  manualEntries: [],
-  aiUsed: false,
+const state = {
+  currentScreen: 'welcome',
+  currentView: 'dashboard',
   isTestDrive: false,
-};
-
-// ========================================
-// MOCK DATA
-// ========================================
-const MOCK_TRANSACTIONS = [
-  { data: '01/02/2026', descricao: 'Uber', valor: 35.50, tipo: 'despesa', categoria: 'Transporte' },
-  { data: '02/02/2026', descricao: 'Supermercado BH', valor: 248.90, tipo: 'despesa', categoria: 'Alimentacao' },
-  { data: '03/02/2026', descricao: 'Netflix', valor: 55.90, tipo: 'despesa', categoria: 'Assinaturas' },
-  { data: '04/02/2026', descricao: 'Farmacia Drogasil', valor: 89.50, tipo: 'despesa', categoria: 'Saude' },
-  { data: '05/02/2026', descricao: 'iFood', valor: 67.80, tipo: 'despesa', categoria: 'Alimentacao' },
-  { data: '06/02/2026', descricao: 'Posto Shell', valor: 210.00, tipo: 'despesa', categoria: 'Transporte' },
-  { data: '07/02/2026', descricao: 'Amazon Prime', valor: 14.90, tipo: 'despesa', categoria: 'Assinaturas' },
-  { data: '08/02/2026', descricao: 'Mercado Livre', valor: 189.90, tipo: 'despesa', categoria: 'Compras' },
-  { data: '09/02/2026', descricao: 'Aluguel', valor: 1500.00, tipo: 'despesa', categoria: 'Moradia' },
-  { data: '10/02/2026', descricao: 'Curso Udemy', valor: 27.90, tipo: 'despesa', categoria: 'Educacao' },
-  { data: '11/02/2026', descricao: 'Cinema', valor: 45.00, tipo: 'despesa', categoria: 'Lazer' },
-  { data: '12/02/2026', descricao: 'Padaria Central', valor: 32.50, tipo: 'despesa', categoria: 'Alimentacao' },
-  { data: '13/02/2026', descricao: 'Spotify', valor: 21.90, tipo: 'despesa', categoria: 'Assinaturas' },
-  { data: '14/02/2026', descricao: 'Uber Eats', valor: 52.30, tipo: 'despesa', categoria: 'Alimentacao' },
-  { data: '15/02/2026', descricao: 'Academia Smart Fit', valor: 99.90, tipo: 'despesa', categoria: 'Saude' },
-];
-
-const CATEGORIES = {
-  Alimentacao: { color: '#f59e0b', icon: '\uD83C\uDF7D', label: 'Alimentacao' },
-  Transporte: { color: '#6366f1', icon: '\uD83D\uDE97', label: 'Transporte' },
-  Moradia: { color: '#06b6d4', icon: '\uD83C\uDFE0', label: 'Moradia' },
-  Saude: { color: '#10b981', icon: '\uD83D\uDC8A', label: 'Saude' },
-  Compras: { color: '#8b5cf6', icon: '\uD83D\uDED2', label: 'Compras' },
-  Assinaturas: { color: '#ec4899', icon: '\uD83D\uDCFA', label: 'Assinaturas' },
-  Lazer: { color: '#f97316', icon: '\uD83C\uDFAE', label: 'Lazer' },
-  Educacao: { color: '#14b8a6', icon: '\uD83D\uDCDA', label: 'Educacao' },
-  Outros: { color: '#64748b', icon: '\uD83D\uDCE6', label: 'Outros' },
+  revenue: 0,
+  transactions: [],
+  debts: [...MOCK_DEBTS],
+  fixed: [...MOCK_FIXED],
+  manualEntries: [],
+  uploadDone: false,
+  sidebarCollapsed: false,
+  aiShown: false,
+  insightHistory: [],
+  // Transactions view pagination
+  txPage: 1,
+  txPerPage: 15,
+  txFilterSearch: '',
+  txFilterCategory: '',
+  txFilterType: '',
+  // Edit state
+  editingTx: null,
+  editingDebt: null,
+  editingFixed: null,
 };
 
 // ========================================
 // UTILITIES
 // ========================================
-function formatCurrency(value) {
-  return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function $(sel, ctx) { return (ctx || document).querySelector(sel); }
+function $$(sel, ctx) { return (ctx || document).querySelectorAll(sel); }
+
+function formatCurrency(v) {
+  return Math.abs(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-function getToken() {
-  return localStorage.getItem('token');
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
 
+function formatDateFull(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function getFullDate() {
+  const d = new Date();
+  const dias = ['Domingo','Segunda-feira','Terca-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sabado'];
+  const meses = ['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  return `Fevereiro 2026 \u2014 ${dias[d.getDay()]}, ${d.getDate()} de ${meses[d.getMonth()].toLowerCase()}`;
+}
+
+function getToken() { return localStorage.getItem('ct_token'); }
 function getUser() {
-  try { return JSON.parse(localStorage.getItem('usuario') || 'null'); } catch { return null; }
+  try { return JSON.parse(localStorage.getItem('ct_user') || 'null'); } catch { return null; }
 }
+function isLoggedIn() { return !!getToken(); }
 
-function isLoggedIn() {
-  return !!getToken();
-}
-
-function categorize(descricao) {
-  const d = descricao.toLowerCase();
+function categorize(desc) {
+  const d = desc.toLowerCase();
   if (/uber|99|taxi|onibus|metro|combustivel|posto|shell|ipiranga|estacionamento/.test(d)) return 'Transporte';
   if (/mercado|supermercado|ifood|rappi|padaria|restaurante|lanchonete|uber eats|alimenta/.test(d)) return 'Alimentacao';
-  if (/aluguel|condominio|iptu|luz|agua|gas|internet|moradia/.test(d)) return 'Moradia';
+  if (/aluguel|condominio|iptu|luz|agua|gas|internet|moradia|energia/.test(d)) return 'Moradia';
   if (/farmacia|hospital|medico|consulta|plano de saude|academia|smart fit|drogasil/.test(d)) return 'Saude';
   if (/netflix|spotify|amazon prime|disney|hbo|youtube|assinatura/.test(d)) return 'Assinaturas';
   if (/cinema|teatro|parque|bar|balada|lazer|jogo|game/.test(d)) return 'Lazer';
   if (/curso|livro|udemy|escola|faculdade|educa/.test(d)) return 'Educacao';
-  if (/mercado livre|shopee|amazon|compra|loja|shopping/.test(d)) return 'Compras';
   return 'Outros';
 }
 
-function getCurrentMonthYear() {
-  const months = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-  const now = new Date();
-  return `${months[now.getMonth()]} ${now.getFullYear()}`;
-}
-
-function getTransactionPeriod(transacoes) {
-  if (!transacoes.length) return '';
-  const dates = transacoes.map(t => t.data);
-  return `${dates[0]} \u2014 ${dates[dates.length - 1]}`;
-}
+function todayISO() { return new Date().toISOString().split('T')[0]; }
 
 async function apiFetch(url, options = {}) {
   const token = getToken();
   const headers = { ...options.headers };
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  if (options.body && !(options.body instanceof FormData)) {
+  if (options.body && typeof options.body === 'string') {
     headers['Content-Type'] = 'application/json';
   }
+  const res = await fetch(url, { ...options, headers });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erro na requisicao');
+  return data;
+}
+
+// ========================================
+// BACKEND DATA LOADING (logged-in mode)
+// ========================================
+async function loadDashboardFromAPI() {
   try {
-    const res = await fetch(url, { ...options, headers });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Erro na requisicao');
-    return data;
+    const [txRes, fixedRes, debtsRes, resumoRes] = await Promise.all([
+      apiFetch('/transacoes').catch(() => null),
+      apiFetch('/contas').catch(() => null),
+      apiFetch('/dividas').catch(() => null),
+      apiFetch('/dashboard/resumo').catch(() => null),
+    ]);
+
+    // Map backend transacoes → frontend transactions
+    if (txRes && txRes.transacoes && txRes.transacoes.length > 0) {
+      state.transactions = txRes.transacoes.map(t => ({
+        id: t.id,
+        date: t.data,
+        desc: t.descricao,
+        category: t.categoria || categorize(t.descricao),
+        value: Number(t.valor),
+      }));
+    } else {
+      state.transactions = MOCK_TRANSACTIONS.map(t => ({ ...t }));
+    }
+
+    // Map backend contas_fixas → frontend fixed
+    if (fixedRes && Array.isArray(fixedRes) && fixedRes.length > 0) {
+      state.fixed = fixedRes.map(c => ({
+        id: c.id,
+        desc: c.descricao,
+        value: Number(c.valor),
+        category: c.categoria || 'Outros',
+        pago: c.pago || false,
+      }));
+    }
+
+    // Map backend dividas → frontend debts
+    if (debtsRes && Array.isArray(debtsRes) && debtsRes.length > 0) {
+      state.debts = debtsRes.map(d => ({
+        id: d.id,
+        desc: d.descricao,
+        total: Number(d.valor_total),
+        paid: Number(d.valor_pago || 0),
+        due: d.data_inicio,
+        parcelas_total: d.parcelas_total,
+        parcelas_pagas: d.parcelas_pagas,
+        quitada: d.quitada,
+      }));
+    }
+
+    // Revenue from dashboard resumo
+    if (resumoRes && resumoRes.receitas != null) {
+      state.revenue = Number(resumoRes.receitas) || 4500;
+    } else {
+      state.revenue = 4500;
+    }
+
+    console.log('Dados carregados do Supabase');
+    return true;
   } catch (err) {
-    throw err;
+    console.warn('Falha ao carregar do backend, usando dados locais:', err);
+    state.transactions = MOCK_TRANSACTIONS.map(t => ({ ...t }));
+    state.revenue = 4500;
+    return false;
   }
 }
 
-// ========================================
-// ROUTER
-// ========================================
-const routes = {
-  '#/': renderLogin,
-  '#/escolha': renderEscolha,
-  '#/registro': renderRegistro,
-  '#/test-drive': renderTestDrive,
-  '#/transacoes': renderTransacoes,
-  '#/dashboard': renderDashboard,
-  '#/upload': renderUpload,
-  '#/input-manual': renderInputManual,
-  '#/configuracoes': renderConfiguracoes,
-};
-
-function navigate(hash) {
-  window.location.hash = hash;
+// Persist a new transaction to backend
+async function apiCreateTransaction(tx) {
+  if (!isLoggedIn()) return null;
+  try {
+    const result = await apiFetch('/transacoes', {
+      method: 'POST',
+      body: JSON.stringify({
+        data: tx.date,
+        descricao: tx.desc,
+        valor: tx.value,
+        tipo: tx.value < 0 ? 'despesa' : 'receita',
+        categoria: tx.category,
+      }),
+    });
+    return result.transacao;
+  } catch (e) {
+    console.warn('Erro ao salvar transacao no backend:', e);
+    return null;
+  }
 }
 
-function handleRoute() {
-  const hash = window.location.hash || '#/';
-  const route = routes[hash] || renderLogin;
-  APP.innerHTML = '';
-  route();
-  if (typeof lucide !== 'undefined') lucide.createIcons();
+// Delete a transaction from backend
+async function apiDeleteTransaction(id) {
+  if (!isLoggedIn()) return;
+  try { await apiFetch(`/transacoes/${id}`, { method: 'DELETE' }); } catch (e) { console.warn('Erro ao deletar transacao:', e); }
 }
 
-window.addEventListener('hashchange', handleRoute);
-window.addEventListener('DOMContentLoaded', () => {
-  if (!window.location.hash) window.location.hash = '#/';
-  handleRoute();
-});
+// Persist a new fixed bill to backend
+async function apiCreateFixed(fixed) {
+  if (!isLoggedIn()) return null;
+  try {
+    const result = await apiFetch('/contas', {
+      method: 'POST',
+      body: JSON.stringify({
+        descricao: fixed.desc,
+        valor: fixed.value,
+        dia_vencimento: null,
+      }),
+    });
+    return result;
+  } catch (e) {
+    console.warn('Erro ao salvar conta fixa no backend:', e);
+    return null;
+  }
+}
+
+// Delete a fixed bill from backend
+async function apiDeleteFixed(id) {
+  if (!isLoggedIn()) return;
+  try { await apiFetch(`/contas/${id}`, { method: 'DELETE' }); } catch (e) { console.warn('Erro ao deletar conta fixa:', e); }
+}
+
+// Persist a new debt to backend
+async function apiCreateDebt(debt) {
+  if (!isLoggedIn()) return null;
+  try {
+    const result = await apiFetch('/dividas', {
+      method: 'POST',
+      body: JSON.stringify({
+        descricao: debt.desc,
+        valor_total: debt.total,
+        valor_parcela: debt.total,
+        parcelas_total: 1,
+        parcelas_pagas: 0,
+        data_inicio: debt.due,
+      }),
+    });
+    return result;
+  } catch (e) {
+    console.warn('Erro ao salvar divida no backend:', e);
+    return null;
+  }
+}
+
+// Delete a debt from backend
+async function apiDeleteDebt(id) {
+  if (!isLoggedIn()) return;
+  try { await apiFetch(`/dividas/${id}`, { method: 'DELETE' }); } catch (e) { console.warn('Erro ao deletar divida:', e); }
+}
+
+// Toggle fixed bill paid status
+async function apiToggleFixedPago(id) {
+  if (!isLoggedIn()) return;
+  try { await apiFetch(`/contas/${id}/toggle-pago`, { method: 'PATCH' }); } catch (e) { console.warn('Erro ao toggle pago:', e); }
+}
+
+// Toggle debt quitada status
+async function apiToggleDebtQuitada(id) {
+  if (!isLoggedIn()) return;
+  try { await apiFetch(`/dividas/${id}/toggle-quitada`, { method: 'PATCH' }); } catch (e) { console.warn('Erro ao toggle quitada:', e); }
+}
 
 // ========================================
-// SCREEN: LOGIN
+// NAVIGATION
 // ========================================
-function renderLogin() {
-  if (isLoggedIn()) { navigate('#/dashboard'); return; }
+function showScreen(name) {
+  state.currentScreen = name;
+  $$('.screen').forEach(s => s.classList.remove('active'));
+  const target = $(`#screen-${name}`);
+  if (target) target.classList.add('active');
+}
 
-  APP.innerHTML = `
-    <div class="login-page">
-      <div class="login-branding">
-        <div class="login-logo">CT</div>
-        <h1>Cash Tracking</h1>
-        <p class="subtitle">Controle financeiro inteligente.</p>
-        <ul class="login-features">
-          <li><span class="check-icon"><i data-lucide="check" style="width:12px;height:12px"></i></span> Importe seu extrato automaticamente</li>
-          <li><span class="check-icon"><i data-lucide="check" style="width:12px;height:12px"></i></span> Categorize gastos com IA</li>
-          <li><span class="check-icon"><i data-lucide="check" style="width:12px;height:12px"></i></span> Visualize para onde vai seu dinheiro</li>
-        </ul>
-      </div>
-      <div class="login-form-side">
-        <div class="login-form-container">
-          <h2>Bem-vindo de volta</h2>
-          <p class="subtitle">Entre na sua conta para continuar</p>
-          <div class="form-group">
-            <label>E-mail</label>
-            <input type="email" data-testid="login-email" placeholder="seu@email.com">
-          </div>
-          <div class="form-group">
-            <label>Senha</label>
-            <input type="password" data-testid="login-password" placeholder="********">
-          </div>
-          <div class="error-message" data-testid="login-error"></div>
-          <button class="btn-primary" data-testid="btn-login">Entrar</button>
-          <div class="form-divider">ou</div>
-          <button class="btn-secondary" data-testid="btn-comecar">Comecar agora</button>
-          <div class="login-footer">
-            <a href="javascript:void(0)" data-testid="link-criar-conta">Criar conta</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+function navigateTo(screen) {
+  showScreen(screen);
+  if (screen === 'dashboard') initDashboard();
+}
 
-  // Login handler
-  APP.querySelector('[data-testid="btn-login"]').addEventListener('click', async () => {
-    const email = APP.querySelector('[data-testid="login-email"]').value;
-    const senha = APP.querySelector('[data-testid="login-password"]').value;
-    const errEl = APP.querySelector('[data-testid="login-error"]');
+function switchView(viewName) {
+  state.currentView = viewName;
+  $$('.dash-view').forEach(v => v.classList.remove('active'));
+  const target = $(`[data-view="${viewName}"]`);
+  if (target) target.classList.add('active');
 
-    if (!email || !senha) {
-      errEl.textContent = 'Preencha todos os campos!';
-      errEl.classList.add('visible');
-      return;
+  // Update sidebar active
+  $$('.sidebar-menu-item').forEach(i => i.classList.remove('active'));
+  const menuBtn = $(`[data-menu="${viewName}"]`);
+  if (menuBtn) menuBtn.classList.add('active');
+
+  // Render the view
+  if (viewName === 'dashboard') refreshDashboardView();
+  else if (viewName === 'transacoes') renderTransactionsView();
+  else if (viewName === 'dividas') renderDebtsView();
+  else if (viewName === 'contas') renderFixedView();
+  else if (viewName === 'insights') renderInsightsView();
+}
+
+// ========================================
+// ANIMATED COUNTER
+// ========================================
+function animateValue(el, target, duration = 800) {
+  const start = 0;
+  const startTime = performance.now();
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = start + (target - start) * eased;
+    el.textContent = formatCurrency(current);
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// ========================================
+// SPARKLINE SVG
+// ========================================
+function sparklineSVG(points, color) {
+  const w = 60, h = 30;
+  const max = Math.max(...points);
+  const min = Math.min(...points);
+  const range = max - min || 1;
+  const coords = points.map((p, i) => {
+    const x = (i / (points.length - 1)) * w;
+    const y = h - ((p - min) / range) * h;
+    return `${x},${y}`;
+  }).join(' ');
+  return `<svg class="summary-sparkline" viewBox="0 0 ${w} ${h}"><polyline points="${coords}" stroke="${color}" /></svg>`;
+}
+
+// ========================================
+// DONUT CHART SVG
+// ========================================
+function donutSVG(catEntries, total) {
+  if (!catEntries.length) {
+    return '<svg width="160" height="160"><circle cx="80" cy="80" r="60" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="20"/><text x="80" y="84" text-anchor="middle" fill="#64748b" font-size="12" font-family="DM Sans">Sem dados</text></svg>';
+  }
+  const R = 60;
+  const C = 2 * Math.PI * R;
+  let offset = 0;
+  let arcs = '';
+  catEntries.forEach(([cat, val], i) => {
+    const pct = total > 0 ? val / total : 0;
+    const dash = pct * C;
+    const info = CATEGORIES[cat] || CATEGORIES.Outros;
+    arcs += `<circle cx="80" cy="80" r="${R}" fill="none" stroke="${info.color}" stroke-width="20" stroke-dasharray="${dash} ${C - dash}" stroke-dashoffset="${-offset}" transform="rotate(-90 80 80)" style="opacity:0;animation:donutIn 0.4s ease ${i * 0.12}s forwards"/>`;
+    offset += dash;
+  });
+  return `<svg width="160" height="160" viewBox="0 0 160 160">${arcs}<text x="80" y="78" text-anchor="middle" fill="#64748b" font-size="11" font-family="DM Sans">Total</text><text x="80" y="94" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="700" font-family="DM Mono">${formatCurrency(total)}</text></svg>`;
+}
+
+// ========================================
+// TYPEWRITER EFFECT
+// ========================================
+function typewriter(el, text, speed = 10) {
+  let i = 0;
+  el.innerHTML = '<span class="typing-cursor"></span>';
+  const interval = setInterval(() => {
+    if (i < text.length) {
+      el.innerHTML = text.substring(0, i + 1) + '<span class="typing-cursor"></span>';
+      i++;
+    } else {
+      clearInterval(interval);
+      el.textContent = text;
+    }
+  }, speed);
+}
+
+// ========================================
+// CSV PARSER (Client-side fallback)
+// ========================================
+function parseCSVClient(content) {
+  const lines = content.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headerLine = lines[0].replace(/^\uFEFF/, '');
+  const sep = headerLine.includes(';') ? ';' : ',';
+  const headers = headerLine.split(sep).map(h => h.trim().replace(/^"|"$/g, ''));
+
+  const findCol = (names) => {
+    for (const n of names) {
+      const idx = headers.findIndex(h => h.toLowerCase() === n.toLowerCase());
+      if (idx >= 0) return idx;
+    }
+    return -1;
+  };
+
+  const dateIdx = findCol(['Data', 'date', 'DATA', 'Data Transação', 'Data Transacao']);
+  const descIdx = findCol(['Descrição', 'Descricao', 'Título', 'Titulo', 'description', 'DESCRICAO', 'Estabelecimento']);
+  const valIdx = findCol(['Valor', 'value', 'VALOR', 'Quantia']);
+
+  if (descIdx < 0 || valIdx < 0) return [];
+
+  return lines.slice(1).map((line, i) => {
+    const cols = line.split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
+    const rawDate = dateIdx >= 0 ? cols[dateIdx] || '' : '';
+    const desc = cols[descIdx] || '';
+    const rawVal = cols[valIdx] || '0';
+
+    let date = todayISO();
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(rawDate)) {
+      const [d, m, y] = rawDate.split('/');
+      date = `${y}-${m}-${d}`;
+    } else if (/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+      date = rawDate;
     }
 
+    const value = parseFloat(
+      rawVal.replace('R$', '').replace(/\s/g, '').replace(/\.(?=\d{3})/g, '').replace(',', '.')
+    );
+
+    if (!desc.trim() || isNaN(value) || value === 0) return null;
+
+    return {
+      id: Date.now() + i,
+      date,
+      desc: desc.trim(),
+      category: categorize(desc),
+      value,
+    };
+  }).filter(Boolean);
+}
+
+// ========================================
+// UPLOAD: Real file processing
+// ========================================
+async function processUpload(file) {
+  // Try server-side first
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch('/api/upload-extrato', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.success && data.transactions && data.transactions.length > 0) {
+      return data.transactions.map(t => ({
+        id: t.id || Date.now() + Math.random(),
+        date: t.date,
+        desc: t.desc,
+        category: t.category,
+        value: t.value,
+      }));
+    }
+  } catch (e) {
+    // Server unavailable, fall through to client-side
+  }
+
+  // Client-side fallback for CSV
+  const content = await file.text();
+  const filename = file.name.toLowerCase();
+  if (filename.endsWith('.csv') || filename.endsWith('.txt')) {
+    const txns = parseCSVClient(content);
+    if (txns.length > 0) return txns;
+  }
+
+  return null;
+}
+
+// ========================================
+// INIT: WELCOME SCREEN
+// ========================================
+function initWelcome() {
+  $('[data-testid="btn-go-login"]').addEventListener('click', () => navigateTo('login'));
+  $('[data-testid="btn-go-signup"]').addEventListener('click', () => navigateTo('signup'));
+  $('[data-testid="link-test-drive"]').addEventListener('click', () => navigateTo('signup'));
+}
+
+// ========================================
+// INIT: LOGIN SCREEN
+// ========================================
+function initLogin() {
+  const emailEl = $('[data-testid="login-email"]');
+  const passEl = $('[data-testid="login-password"]');
+  const btnEl = $('[data-testid="btn-login"]');
+  const errEl = $('[data-testid="login-error"]');
+
+  function checkFields() {
+    btnEl.disabled = !(emailEl.value.trim() && passEl.value.trim());
+  }
+
+  emailEl.addEventListener('input', checkFields);
+  passEl.addEventListener('input', checkFields);
+
+  passEl.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !btnEl.disabled) btnEl.click();
+  });
+
+  $('[data-testid="login-back"]').addEventListener('click', () => navigateTo('welcome'));
+
+  btnEl.addEventListener('click', async () => {
+    errEl.classList.remove('visible');
+    errEl.textContent = '';
     try {
       const data = await apiFetch('/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ email, senha }),
+        body: JSON.stringify({ email: emailEl.value.trim(), senha: passEl.value }),
       });
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('usuario', JSON.stringify(data.usuario));
+      localStorage.setItem('ct_token', data.token);
+      localStorage.setItem('ct_user', JSON.stringify(data.usuario));
       state.isTestDrive = false;
-      navigate('#/dashboard');
+      // Load real data from Supabase
+      await loadDashboardFromAPI();
+      navigateTo('dashboard');
     } catch (err) {
       errEl.textContent = err.message || 'Email ou senha invalidos';
       errEl.classList.add('visible');
     }
   });
-
-  // Enter key on password
-  APP.querySelector('[data-testid="login-password"]').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') APP.querySelector('[data-testid="btn-login"]').click();
-  });
-
-  APP.querySelector('[data-testid="btn-comecar"]').addEventListener('click', () => navigate('#/escolha'));
-  APP.querySelector('[data-testid="link-criar-conta"]').addEventListener('click', () => navigate('#/registro'));
 }
 
 // ========================================
-// SCREEN: REGISTRO
+// INIT: SIGNUP SCREEN
 // ========================================
-function renderRegistro() {
-  APP.innerHTML = `
-    <div class="centered-page">
-      <div class="centered-card">
-        <button class="back-button" onclick="navigate('#/')">\u2190 Voltar</button>
-        <div class="centered-logo">CT</div>
-        <h2>Criar conta</h2>
-        <p class="subtitle">Cadastre-se para comecar a controlar suas financas</p>
-        <div class="form-group">
-          <label>Nome</label>
-          <input type="text" data-testid="register-name" placeholder="Seu nome completo">
-        </div>
-        <div class="form-group">
-          <label>E-mail</label>
-          <input type="email" data-testid="register-email" placeholder="seu@email.com">
-        </div>
-        <div class="form-group">
-          <label>Senha</label>
-          <input type="password" data-testid="register-password" placeholder="Minimo 8 caracteres">
-        </div>
-        <div class="error-message" data-testid="register-error"></div>
-        <button class="btn-primary" data-testid="btn-register">Criar conta</button>
-        <div class="login-footer" style="margin-top:16px">
-          Ja tem conta? <a href="javascript:void(0)" onclick="navigate('#/')">Entrar</a>
-        </div>
-      </div>
-    </div>
-  `;
+function initSignup() {
+  const nameEl = $('[data-testid="signup-name"]');
+  const emailEl = $('[data-testid="signup-email"]');
+  const passEl = $('[data-testid="signup-password"]');
+  const btnEl = $('[data-testid="btn-signup"]');
+  const errEl = $('[data-testid="signup-error"]');
 
-  APP.querySelector('[data-testid="btn-register"]').addEventListener('click', async () => {
-    const nome = APP.querySelector('[data-testid="register-name"]').value;
-    const email = APP.querySelector('[data-testid="register-email"]').value;
-    const senha = APP.querySelector('[data-testid="register-password"]').value;
-    const errEl = APP.querySelector('[data-testid="register-error"]');
+  function checkFields() {
+    btnEl.disabled = !(nameEl.value.trim() && emailEl.value.trim() && passEl.value.trim());
+  }
 
-    if (!nome || nome.length < 2) { errEl.textContent = 'Nome deve ter no minimo 2 caracteres'; errEl.classList.add('visible'); return; }
-    if (!email || !email.includes('@')) { errEl.textContent = 'Email invalido'; errEl.classList.add('visible'); return; }
-    if (!senha || senha.length < 8) { errEl.textContent = 'Senha deve ter no minimo 8 caracteres'; errEl.classList.add('visible'); return; }
+  nameEl.addEventListener('input', checkFields);
+  emailEl.addEventListener('input', checkFields);
+  passEl.addEventListener('input', checkFields);
+
+  $('[data-testid="signup-back"]').addEventListener('click', () => navigateTo('welcome'));
+
+  $('[data-testid="btn-signup-testdrive"]').addEventListener('click', () => {
+    state.isTestDrive = true;
+    sessionStorage.setItem('ct_testdrive', '1');
+    navigateTo('testdrive');
+  });
+
+  btnEl.addEventListener('click', async () => {
+    errEl.classList.remove('visible');
+    errEl.textContent = '';
+
+    const nome = nameEl.value.trim();
+    const email = emailEl.value.trim();
+    const senha = passEl.value;
+
+    if (nome.length < 2) { errEl.textContent = 'Nome deve ter no minimo 2 caracteres'; errEl.classList.add('visible'); return; }
+    if (!email.includes('@')) { errEl.textContent = 'Email invalido'; errEl.classList.add('visible'); return; }
+    if (senha.length < 8) { errEl.textContent = 'Senha deve ter no minimo 8 caracteres'; errEl.classList.add('visible'); return; }
 
     try {
       const data = await apiFetch('/auth/cadastro', {
         method: 'POST',
         body: JSON.stringify({ nome, email, senha }),
       });
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('usuario', JSON.stringify(data.usuario));
+      localStorage.setItem('ct_token', data.token);
+      localStorage.setItem('ct_user', JSON.stringify(data.usuario));
       state.isTestDrive = false;
-      navigate('#/dashboard');
+      navigateTo('testdrive');
     } catch (err) {
       errEl.textContent = err.message || 'Erro ao cadastrar';
       errEl.classList.add('visible');
@@ -280,800 +590,1076 @@ function renderRegistro() {
 }
 
 // ========================================
-// SCREEN: ESCOLHA
+// INIT: TEST DRIVE SCREEN
 // ========================================
-function renderEscolha() {
-  APP.innerHTML = `
-    <div class="centered-page">
-      <div class="centered-card">
-        <button class="back-button" onclick="navigate('#/')">\u2190 Voltar</button>
-        <div class="centered-logo">CT</div>
-        <h2>Como quer comecar?</h2>
-        <p class="subtitle">Escolha a opcao que preferir</p>
-        <div class="choice-card" data-testid="option-test-drive">
-          <div class="choice-icon choice-icon-play"><i data-lucide="play" style="width:20px;height:20px"></i></div>
-          <div>
-            <h3>Test-Drive</h3>
-            <p>Teste agora, sem cadastro. Importe seu extrato e veja o resultado.</p>
-          </div>
-        </div>
-        <div class="choice-card" data-testid="option-register">
-          <div class="choice-icon choice-icon-register"><i data-lucide="plus" style="width:20px;height:20px"></i></div>
-          <div>
-            <h3>Criar conta</h3>
-            <p>Cadastre-se para salvar seus dados e acessar todas as funcionalidades.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+function initTestDrive() {
+  const tabBtns = $$('.tab-btn');
+  const revenueInput = $('[data-testid="testdrive-revenue"]');
+  const dashBtn = $('[data-testid="btn-go-dashboard"]');
+  const dropzone = $('[data-testid="testdrive-dropzone"]');
+  const fileInput = $('[data-testid="testdrive-file-input"]');
+  const progressEl = $('[data-testid="testdrive-progress"]');
+  const progressFill = $('[data-testid="testdrive-progress-fill"]');
+  const successArea = $('[data-testid="upload-success-area"]');
 
-  APP.querySelector('[data-testid="option-test-drive"]').addEventListener('click', () => {
-    state.isTestDrive = true;
-    navigate('#/test-drive');
+  $('[data-testid="testdrive-back"]').addEventListener('click', () => navigateTo('signup'));
+
+  // Tabs
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      $('#tab-content-upload').style.display = tab === 'upload' ? 'block' : 'none';
+      $('#tab-content-manual').style.display = tab === 'manual' ? 'block' : 'none';
+    });
   });
-  APP.querySelector('[data-testid="option-register"]').addEventListener('click', () => navigate('#/registro'));
-}
 
-// ========================================
-// SCREEN: TEST-DRIVE
-// ========================================
-function renderTestDrive() {
-  state.isTestDrive = true;
-  state.manualEntries = [];
+  function checkReady() {
+    const hasRevenue = revenueInput.value && parseFloat(revenueInput.value) > 0;
+    const hasData = state.uploadDone || state.manualEntries.length > 0;
+    dashBtn.disabled = !(hasRevenue || hasData);
+  }
 
-  APP.innerHTML = `
-    <div class="test-drive-page">
-      <div class="test-drive-container">
-        <button class="back-button" onclick="navigate('#/escolha')">\u2190 Voltar</button>
-        <h2>Test-Drive</h2>
-        <p class="subtitle" style="color:var(--text-muted);margin-bottom:8px">Importe seu extrato ou adicione transacoes manualmente</p>
+  revenueInput.addEventListener('input', checkReady);
 
-        <div class="test-drive-grid">
-          <!-- Upload Column -->
-          <div class="test-drive-card">
-            <h3>Upload de extrato</h3>
-            <div class="upload-dropzone" data-testid="upload-dropzone">
-              <div class="upload-dropzone-icon"><i data-lucide="upload" style="width:22px;height:22px"></i></div>
-              <p>Arraste seu arquivo aqui</p>
-              <span class="upload-hint">PDF, CSV, OFX ou TXT</span>
-            </div>
-            <input type="file" class="hidden-input" data-testid="upload-file-input" accept=".pdf,.csv,.txt,.ofx">
-            <div class="upload-progress" data-testid="upload-progress">
-              <div class="progress-bar"><div class="progress-fill"></div></div>
-            </div>
-          </div>
-
-          <!-- Manual Input Column -->
-          <div class="test-drive-card">
-            <h3>Input manual</h3>
-            <div class="manual-form">
-              <input type="date" data-testid="manual-date">
-              <input type="text" data-testid="manual-description" placeholder="Descricao">
-              <div class="form-row">
-                <input type="number" data-testid="manual-value" placeholder="Valor" step="0.01" min="0">
-                <select data-testid="manual-type">
-                  <option value="despesa">Despesa</option>
-                  <option value="receita">Receita</option>
-                </select>
-              </div>
-              <button class="btn-primary" data-testid="btn-add-manual">Adicionar</button>
-            </div>
-            <div class="manual-entries" data-testid="manual-entries-list"></div>
-          </div>
-        </div>
-
-        <div class="test-drive-footer">
-          <button class="btn-secondary" data-testid="btn-demo-data">Ver demonstracao com dados exemplo</button>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Dropzone click -> trigger file input
-  const dropzone = APP.querySelector('[data-testid="upload-dropzone"]');
-  const fileInput = APP.querySelector('[data-testid="upload-file-input"]');
-
+  // Dropzone click/drag
   dropzone.addEventListener('click', () => fileInput.click());
-
-  // Drag events
   dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
   dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
   dropzone.addEventListener('drop', (e) => {
     e.preventDefault();
     dropzone.classList.remove('drag-over');
-    const file = e.dataTransfer.files[0];
-    if (file) handleFileUpload(file);
+    if (e.dataTransfer.files[0]) handleTestDriveUpload(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) handleTestDriveUpload(fileInput.files[0]);
   });
 
-  // File input change
-  fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) handleFileUpload(file);
-  });
+  async function handleTestDriveUpload(file) {
+    dropzone.style.display = 'none';
+    progressEl.classList.add('visible');
 
-  // Demo data
-  APP.querySelector('[data-testid="btn-demo-data"]').addEventListener('click', () => {
-    state.transacoes = [...MOCK_TRANSACTIONS];
-    state.receita = 0;
-    state.receitaSaved = false;
-    sessionStorage.setItem('transacoes', JSON.stringify(state.transacoes));
-    navigate('#/transacoes');
-  });
+    // Animate progress
+    let pct = 0;
+    const interval = setInterval(() => {
+      pct += Math.random() * 12 + 3;
+      if (pct > 85) pct = 85;
+      progressFill.style.width = pct + '%';
+    }, 100);
 
-  // Manual add
-  APP.querySelector('[data-testid="btn-add-manual"]').addEventListener('click', () => {
-    const dateEl = APP.querySelector('[data-testid="manual-date"]');
-    const descEl = APP.querySelector('[data-testid="manual-description"]');
-    const valEl = APP.querySelector('[data-testid="manual-value"]');
-    const typeEl = APP.querySelector('[data-testid="manual-type"]');
+    const txns = await processUpload(file);
 
-    const dateVal = dateEl.value;
+    clearInterval(interval);
+    progressFill.style.width = '100%';
+
+    setTimeout(() => {
+      progressEl.classList.remove('visible');
+
+      if (txns && txns.length > 0) {
+        state.uploadDone = true;
+        state.transactions = txns;
+        successArea.innerHTML = `
+          <div class="upload-success">
+            <div class="success-icon">\u2713</div>
+            <p>Extrato processado com sucesso</p>
+            <span>${txns.length} transacoes identificadas e categorizadas</span>
+          </div>`;
+      } else {
+        // Fallback to mock
+        state.uploadDone = true;
+        state.transactions = MOCK_TRANSACTIONS.map(t => ({ ...t }));
+        successArea.innerHTML = `
+          <div class="upload-success">
+            <div class="success-icon">\u2713</div>
+            <p>Extrato processado com sucesso</p>
+            <span>${MOCK_TRANSACTIONS.length} transacoes identificadas e categorizadas</span>
+          </div>`;
+      }
+      checkReady();
+    }, 400);
+  }
+
+  // Manual entries
+  $('[data-testid="btn-add-manual"]').addEventListener('click', () => {
+    const descEl = $('[data-testid="manual-desc"]');
+    const valEl = $('[data-testid="manual-value"]');
+    const typeEl = $('[data-testid="manual-type"]');
+    const catEl = $('[data-testid="manual-category"]');
+
     const desc = descEl.value.trim();
     const valor = parseFloat(valEl.value);
     const tipo = typeEl.value;
+    const cat = catEl.value;
 
-    if (!dateVal || !desc || !valor || isNaN(valor)) return;
-
-    const parts = dateVal.split('-');
-    const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+    if (!desc || !valor || isNaN(valor)) return;
 
     const entry = {
-      data: formattedDate,
-      descricao: desc,
-      valor,
-      tipo,
-      categoria: categorize(desc),
+      id: Date.now(),
+      date: todayISO(),
+      desc,
+      category: cat,
+      value: tipo === 'gasto' ? -valor : valor
     };
 
     state.manualEntries.push(entry);
     renderManualEntries();
+    checkReady();
 
-    dateEl.value = '';
     descEl.value = '';
     valEl.value = '';
   });
-}
 
-function renderManualEntries() {
-  const list = APP.querySelector('[data-testid="manual-entries-list"]');
-  if (!list) return;
-  list.innerHTML = state.manualEntries.map(e => `
-    <div class="manual-entry">
-      <span class="entry-desc">${e.descricao}</span>
-      <span class="entry-value ${e.tipo === 'receita' ? 'income' : ''}">${e.tipo === 'despesa' ? '- ' : '+ '}R$ ${formatCurrency(e.valor)}</span>
-    </div>
-  `).join('');
-}
-
-async function handleFileUpload(file) {
-  const progress = APP.querySelector('[data-testid="upload-progress"]');
-  progress.classList.add('visible');
-
-  try {
-    const formData = new FormData();
-    formData.append('arquivo', file);
-
-    const res = await fetch('/extrato/upload', { method: 'POST', body: formData });
-    const data = await res.json();
-
-    if (data.transacoes && data.transacoes.length) {
-      state.transacoes = data.transacoes.map(t => ({
-        ...t,
-        categoria: t.categoria || categorize(t.descricao),
-      }));
-    } else {
-      // Fallback: parse CSV client-side
-      state.transacoes = await parseCSVClientSide(file);
-    }
-
-    state.receita = 0;
-    state.receitaSaved = false;
-    sessionStorage.setItem('transacoes', JSON.stringify(state.transacoes));
-    navigate('#/transacoes');
-  } catch (err) {
-    // Fallback: try client-side parsing
-    try {
-      state.transacoes = await parseCSVClientSide(file);
-      state.receita = 0;
-      state.receitaSaved = false;
-      sessionStorage.setItem('transacoes', JSON.stringify(state.transacoes));
-      navigate('#/transacoes');
-    } catch {
-      progress.classList.remove('visible');
-    }
-  }
-}
-
-function parseCSVClientSide(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target.result;
-        const lines = text.split('\n').filter(l => l.trim());
-        const transactions = [];
-
-        for (let i = 1; i < lines.length; i++) {
-          const parts = lines[i].split(';').map(p => p.trim());
-          if (parts.length >= 3) {
-            const valor = parseFloat(parts[2].replace(',', '.'));
-            if (!isNaN(valor)) {
-              transactions.push({
-                data: parts[0],
-                descricao: parts[1],
-                valor: Math.abs(valor),
-                tipo: valor < 0 ? 'despesa' : 'receita',
-                categoria: categorize(parts[1]),
-              });
-            }
-          }
-        }
-        resolve(transactions);
-      } catch { reject(new Error('Failed to parse CSV')); }
-    };
-    reader.onerror = reject;
-    reader.readAsText(file);
-  });
-}
-
-// ========================================
-// SCREEN: TRANSACOES
-// ========================================
-function renderTransacoes() {
-  // Load from sessionStorage if empty
-  if (!state.transacoes.length) {
-    const stored = sessionStorage.getItem('transacoes');
-    if (stored) state.transacoes = JSON.parse(stored);
-  }
-
-  // Also load manual entries
-  if (state.manualEntries.length && !state.transacoes.length) {
-    state.transacoes = [...state.manualEntries];
-  }
-
-  const totalExpenses = state.transacoes.filter(t => t.tipo === 'despesa').reduce((s, t) => s + t.valor, 0);
-  const balance = state.receita - totalExpenses;
-
-  APP.innerHTML = `
-    <div class="transactions-page">
-      <div class="transactions-container">
-        <div class="transactions-header">
+  function renderManualEntries() {
+    const list = $('[data-testid="manual-entries-list"]');
+    list.innerHTML = state.manualEntries.map(e => {
+      const isExpense = e.value < 0;
+      const info = CATEGORIES[e.category] || CATEGORIES.Outros;
+      return `
+        <div class="manual-entry">
           <div>
-            <h1 data-testid="transactions-count">${state.transacoes.length} transacoes encontradas</h1>
-            <p class="period" data-testid="transactions-period">Periodo: ${getTransactionPeriod(state.transacoes)}</p>
+            <div class="entry-desc">${e.desc}</div>
+            <div class="entry-cat">${info.icon} ${e.category}</div>
           </div>
-          <button class="btn-primary" data-testid="btn-view-dashboard">Ver Dashboard \u2192</button>
-        </div>
+          <span class="entry-value ${isExpense ? '' : 'income'}">${isExpense ? '- ' : '+ '}${formatCurrency(e.value)}</span>
+          <button class="entry-remove" data-id="${e.id}">&times;</button>
+        </div>`;
+    }).join('');
 
-        ${!state.receitaSaved ? `
-        <div class="income-card">
-          <h3>Qual foi sua receita neste mes?</h3>
-          <p class="subtitle">Informe o valor aproximado para calcularmos seu saldo e percentuais.</p>
-          <div class="income-input-group">
-            <div class="income-input-wrapper">
-              <span class="income-prefix">R$</span>
-              <input type="number" data-testid="income-input" placeholder="0,00" step="0.01" min="0">
-            </div>
-            <button class="btn-primary" data-testid="btn-save-income">Salvar</button>
-          </div>
-        </div>
-        ` : `
-        <div class="summary-cards">
-          <div class="summary-card income" data-testid="summary-income">
-            <div class="summary-label">RECEITA</div>
-            <div class="summary-value mono">R$ ${formatCurrency(state.receita)}</div>
-          </div>
-          <div class="summary-card expenses" data-testid="summary-expenses">
-            <div class="summary-label">GASTOS</div>
-            <div class="summary-value mono">R$ ${formatCurrency(totalExpenses)}</div>
-          </div>
-          <div class="summary-card balance ${balance < 0 ? 'negative' : ''}" data-testid="summary-balance">
-            <div class="summary-label">SALDO</div>
-            <div class="summary-value mono">R$ ${formatCurrency(balance)}</div>
-          </div>
-        </div>
-        `}
-
-        <div class="transactions-table" data-testid="transactions-table">
-          <div class="table-header">
-            <div>DATA</div>
-            <div>DESCRICAO</div>
-            <div class="col-category">CATEGORIA</div>
-            <div style="text-align:right">VALOR</div>
-          </div>
-          ${state.transacoes.map((t, i) => `
-            <div class="table-row animate-in" data-row style="animation-delay:${i * 0.03}s">
-              <div class="row-date">${t.data}</div>
-              <div class="row-desc">${t.descricao}</div>
-              <div class="row-category"><span class="badge badge-${(t.categoria || 'Outros').toLowerCase()}">${t.categoria || 'Outros'}</span></div>
-              <div class="row-value ${t.tipo === 'receita' ? 'income' : ''}">${t.tipo === 'despesa' ? '- ' : '+ '}R$ ${formatCurrency(t.valor)}</div>
-            </div>
-          `).join('')}
-        </div>
-
-        <div class="transactions-footer">
-          <button class="btn-primary" data-testid="btn-view-dashboard">Ver Dashboard Completo \u2192</button>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Save income
-  const saveBtn = APP.querySelector('[data-testid="btn-save-income"]');
-  if (saveBtn) {
-    saveBtn.addEventListener('click', () => {
-      const val = parseFloat(APP.querySelector('[data-testid="income-input"]').value);
-      if (!val || isNaN(val)) return;
-      state.receita = val;
-      state.receitaSaved = true;
-      sessionStorage.setItem('receita', val.toString());
-      renderTransacoes();
+    list.querySelectorAll('.entry-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.manualEntries = state.manualEntries.filter(e => e.id !== parseInt(btn.dataset.id));
+        renderManualEntries();
+        checkReady();
+      });
     });
   }
 
-  // Navigate to dashboard
-  APP.querySelectorAll('[data-testid="btn-view-dashboard"]').forEach(btn => {
-    btn.addEventListener('click', () => navigate('#/dashboard'));
+  // Go to dashboard
+  dashBtn.addEventListener('click', () => {
+    state.revenue = parseFloat(revenueInput.value) || 4500;
+    if (!state.transactions.length && state.manualEntries.length) {
+      state.transactions = [...state.manualEntries];
+    } else if (!state.transactions.length) {
+      state.transactions = MOCK_TRANSACTIONS.map(t => ({ ...t }));
+    } else if (state.manualEntries.length) {
+      state.transactions = [...state.transactions, ...state.manualEntries];
+    }
+    sessionStorage.setItem('ct_transactions', JSON.stringify(state.transactions));
+    sessionStorage.setItem('ct_revenue', state.revenue.toString());
+    navigateTo('dashboard');
   });
 }
 
 // ========================================
-// SCREEN: DASHBOARD
+// INIT: DASHBOARD
 // ========================================
-function renderDashboard() {
-  // Load transacoes from sessionStorage if needed
-  if (!state.transacoes.length) {
-    const stored = sessionStorage.getItem('transacoes');
-    if (stored) state.transacoes = JSON.parse(stored);
+function initDashboard() {
+  // Load data from sessionStorage if needed
+  if (!state.transactions.length) {
+    const stored = sessionStorage.getItem('ct_transactions');
+    if (stored) state.transactions = JSON.parse(stored);
+    else state.transactions = MOCK_TRANSACTIONS.map(t => ({ ...t }));
+  }
+  if (!state.revenue) {
+    const storedRev = sessionStorage.getItem('ct_revenue');
+    if (storedRev) state.revenue = parseFloat(storedRev);
+    else state.revenue = 4500;
   }
 
-  // Load receita from sessionStorage
-  if (!state.receita) {
-    const storedReceita = sessionStorage.getItem('receita');
-    if (storedReceita) { state.receita = parseFloat(storedReceita); state.receitaSaved = true; }
+  const isTest = state.isTestDrive || sessionStorage.getItem('ct_testdrive') === '1';
+  const user = getUser();
+
+  // Banner
+  const banner = $('[data-testid="test-banner"]');
+  if (isTest && !isLoggedIn()) {
+    banner.style.display = 'flex';
+    $('[data-testid="screen-dashboard"]').classList.add('has-banner');
+    $('.dashboard-main').style.paddingTop = '72px';
+  } else {
+    banner.style.display = 'none';
   }
 
-  const isTest = state.isTestDrive || !isLoggedIn();
-  const expenses = state.transacoes.filter(t => t.tipo === 'despesa');
-  const totalExpenses = expenses.reduce((s, t) => s + t.valor, 0);
-  const balance = state.receita - totalExpenses;
+  // Greeting
+  const greeting = $('[data-testid="dash-greeting"]');
+  if (user && user.nome) {
+    greeting.textContent = `Ola, ${user.nome}`;
+  } else {
+    greeting.textContent = 'Seu Dashboard';
+  }
+
+  // Date
+  $('[data-testid="dash-date"]').textContent = getFullDate();
+
+  // Logout button
+  const logoutBtn = $('[data-testid="sidebar-logout"]');
+  if (isLoggedIn()) {
+    logoutBtn.style.display = 'flex';
+    logoutBtn.onclick = () => {
+      localStorage.removeItem('ct_token');
+      localStorage.removeItem('ct_user');
+      sessionStorage.clear();
+      state.transactions = [];
+      state.revenue = 0;
+      state.isTestDrive = false;
+      navigateTo('welcome');
+    };
+  } else {
+    logoutBtn.style.display = 'none';
+  }
+
+  // Banner register
+  $('[data-testid="banner-register"]').onclick = () => navigateTo('signup');
+
+  // Sidebar toggle
+  const sidebar = $('[data-testid="sidebar"]');
+  $('[data-testid="sidebar-toggle"]').onclick = () => {
+    state.sidebarCollapsed = !state.sidebarCollapsed;
+    sidebar.classList.toggle('collapsed', state.sidebarCollapsed);
+    $('.dashboard-main').style.marginLeft =
+      state.sidebarCollapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-width)';
+    const toggleIcon = $('[data-testid="sidebar-toggle"] .menu-icon');
+    toggleIcon.innerHTML = state.sidebarCollapsed ? '&#9655;' : '&#9665;';
+  };
+
+  // Sidebar menu navigation
+  $$('.sidebar-menu-item').forEach(item => {
+    item.onclick = () => {
+      switchView(item.dataset.menu);
+    };
+  });
+
+  // Compute values
+  const expenses = state.transactions.filter(t => t.value < 0);
+  const totalExpenses = expenses.reduce((s, t) => s + Math.abs(t.value), 0);
+  const totalFixed = state.fixed.reduce((s, f) => s + f.value, 0);
+  const balance = state.revenue - totalExpenses;
+
+  // Summary cards
+  renderSummaryCards(totalExpenses, totalFixed, balance);
 
   // Category breakdown
   const catMap = {};
   expenses.forEach(t => {
-    const cat = t.categoria || 'Outros';
-    catMap[cat] = (catMap[cat] || 0) + t.valor;
+    const cat = t.category || 'Outros';
+    catMap[cat] = (catMap[cat] || 0) + Math.abs(t.value);
   });
-
   const catEntries = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
 
-  APP.innerHTML = `
-    <div class="dashboard-layout">
-      ${renderSidebar('dashboard')}
-      <div class="dashboard-main">
-        <div class="mobile-header">
-          <button class="hamburger-btn" onclick="toggleMobileSidebar()"><i data-lucide="menu" style="width:18px;height:18px"></i></button>
-          <h2>Dashboard</h2>
-        </div>
+  // Render dashboard view
+  renderTransactions();
+  renderDebts();
+  renderDonut(catEntries, totalExpenses);
+  renderBudget(totalExpenses);
+  renderFixedBills();
 
-        <div class="dashboard-topbar">
-          <div>
-            <h1 data-testid="dashboard-title">Dashboard</h1>
-            <p class="topbar-date">${getCurrentMonthYear()}</p>
-          </div>
-          ${isTest ? '<button class="btn-secondary" data-testid="btn-register-cta" onclick="navigate(\'#/registro\')">Criar conta para salvar</button>' : ''}
-        </div>
+  // Upload modal
+  initUploadModal();
 
-        <!-- Summary Cards -->
-        <div class="dashboard-summary">
-          <div class="summary-card income" data-testid="dashboard-summary-income">
-            <div class="summary-label">RECEITA</div>
-            <div class="summary-value mono">R$ ${formatCurrency(state.receita)}</div>
-          </div>
-          <div class="summary-card expenses" data-testid="dashboard-summary-expenses">
-            <div class="summary-label">GASTOS</div>
-            <div class="summary-value mono">R$ ${formatCurrency(totalExpenses)}</div>
-          </div>
-          <div class="summary-card balance ${balance < 0 ? 'negative' : ''}" data-testid="dashboard-summary-balance">
-            <div class="summary-label">SALDO</div>
-            <div class="summary-value mono">R$ ${formatCurrency(balance)}</div>
-          </div>
-        </div>
+  // AI insight button
+  $('[data-testid="btn-ai-insight"]').onclick = () => showAIInsight();
 
-        <!-- Categories Section -->
-        <div class="categories-section">
-          <div class="category-donut-card" data-testid="category-donut">
-            <h3>Distribuicao por categoria</h3>
-            <div class="donut-container">
-              ${renderDonutChart(catEntries, totalExpenses)}
-            </div>
-          </div>
-          <div class="category-breakdown-card" data-testid="category-breakdown">
-            <h3>Detalhamento</h3>
-            ${catEntries.map(([cat, val]) => {
-              const pct = totalExpenses > 0 ? ((val / totalExpenses) * 100).toFixed(1) : 0;
-              const catInfo = CATEGORIES[cat] || CATEGORIES.Outros;
-              return `
-                <div class="category-item">
-                  <div class="category-dot" style="background:${catInfo.color}"></div>
-                  <div class="category-info">
-                    <div class="category-name">${catInfo.icon} ${cat}</div>
-                    <div class="category-bar-wrapper">
-                      <div class="category-bar-fill" style="width:${pct}%;background:${catInfo.color}"></div>
-                    </div>
-                  </div>
-                  <div class="category-percent">${pct}%</div>
-                  <div class="category-value mono">R$ ${formatCurrency(val)}</div>
-                </div>
-              `;
-            }).join('')}
-          </div>
-        </div>
+  // CRUD modals
+  initTransactionModal();
+  initDebtModal();
+  initFixedModal();
 
-        <!-- AI Insight Card -->
-        <div class="ai-card" data-testid="ai-insight-card">
-          <div class="ai-card-header">
-            <div class="ai-icon"><i data-lucide="sparkles" style="width:16px;height:16px"></i></div>
-            <h3>Analise Inteligente</h3>
-            <span class="badge-ia">IA</span>
-          </div>
-          <div data-testid="ai-insight-text" class="ai-insight-text"></div>
-          ${!state.aiUsed ? `<button class="btn-primary" data-testid="btn-ai-analyze">Ver analise</button>` : ''}
-          <div data-testid="ai-free-limit" class="ai-free-limit" style="display:none">
-            1 de 1 analise gratuita utilizada &middot; <a href="javascript:void(0)">Desbloquear Plus \u2192</a>
-          </div>
-        </div>
+  // Reset to dashboard view
+  switchView('dashboard');
 
-        <!-- CTA Card (test drive) -->
-        ${isTest ? `
-        <div class="cta-card">
-          <p>Gostou do que viu? Crie sua conta para salvar seus dados e acessar analises ilimitadas.</p>
-          <button class="btn-primary" data-testid="btn-register-cta" onclick="navigate('#/registro')">Criar conta gratuita</button>
-        </div>
-        ` : ''}
-      </div>
-    </div>
-  `;
-
-  // AI analysis button
-  const aiBtn = APP.querySelector('[data-testid="btn-ai-analyze"]');
-  if (aiBtn) {
-    aiBtn.addEventListener('click', () => {
-      aiBtn.style.display = 'none';
-      runAIAnalysis(catEntries, totalExpenses);
-    });
-  }
-
-  // Animate category bars after render
+  // Animate summary values after render
   requestAnimationFrame(() => {
-    APP.querySelectorAll('.category-bar-fill').forEach(bar => {
-      const w = bar.style.width;
-      bar.style.width = '0%';
-      requestAnimationFrame(() => { bar.style.width = w; });
+    $$('[data-animate-value]').forEach(el => {
+      animateValue(el, parseFloat(el.dataset.animateValue));
     });
   });
 }
 
-function renderDonutChart(catEntries, total) {
-  if (!catEntries.length) {
-    return '<svg width="160" height="160"><circle cx="80" cy="80" r="60" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="20"/><text x="80" y="78" text-anchor="middle" fill="#64748b" font-size="12" font-family="DM Sans">Sem dados</text></svg>';
-  }
+// ========================================
+// DASHBOARD: Refresh (when switching back)
+// ========================================
+function refreshDashboardView() {
+  const expenses = state.transactions.filter(t => t.value < 0);
+  const totalExpenses = expenses.reduce((s, t) => s + Math.abs(t.value), 0);
+  const totalFixed = state.fixed.reduce((s, f) => s + f.value, 0);
+  const balance = state.revenue - totalExpenses;
 
-  const radius = 60;
-  const circumference = 2 * Math.PI * radius;
-  let offset = 0;
-  let segments = '';
+  renderSummaryCards(totalExpenses, totalFixed, balance);
+  renderTransactions();
+  renderDebts();
 
-  catEntries.forEach(([cat, val], i) => {
-    const pct = total > 0 ? val / total : 0;
-    const dashLen = pct * circumference;
-    const catInfo = CATEGORIES[cat] || CATEGORIES.Outros;
-    segments += `<circle cx="80" cy="80" r="${radius}" fill="none" stroke="${catInfo.color}" stroke-width="20" stroke-dasharray="${dashLen} ${circumference - dashLen}" stroke-dashoffset="${-offset}" transform="rotate(-90 80 80)" style="opacity:0;animation:fadeIn 0.4s ease ${i * 0.15}s forwards"/>`;
-    offset += dashLen;
+  const catMap = {};
+  expenses.forEach(t => {
+    const cat = t.category || 'Outros';
+    catMap[cat] = (catMap[cat] || 0) + Math.abs(t.value);
   });
+  const catEntries = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
 
-  return `
-    <svg width="160" height="160" viewBox="0 0 160 160">
-      ${segments}
-      <text x="80" y="74" text-anchor="middle" fill="#64748b" font-size="11" font-family="DM Sans">Total</text>
-      <text x="80" y="92" text-anchor="middle" fill="#f1f5f9" font-size="13" font-weight="700" font-family="DM Mono">R$ ${formatCurrency(total)}</text>
-    </svg>
-  `;
-}
+  renderDonut(catEntries, totalExpenses);
+  renderBudget(totalExpenses);
+  renderFixedBills();
 
-function runAIAnalysis(catEntries, totalExpenses) {
-  const textEl = APP.querySelector('[data-testid="ai-insight-text"]');
-  const limitEl = APP.querySelector('[data-testid="ai-free-limit"]');
-
-  // Build analysis text based on real data
-  let analysis = '';
-  if (catEntries.length) {
-    const topCat = catEntries[0];
-    const topPct = totalExpenses > 0 ? ((topCat[1] / totalExpenses) * 100).toFixed(0) : 0;
-    analysis = `Com base nas suas ${state.transacoes.length} transacoes, identifiquei que a categoria "${topCat[0]}" representa ${topPct}% dos seus gastos totais (R$ ${formatCurrency(topCat[1])}). `;
-
-    if (state.receita > 0) {
-      const savingRate = ((state.receita - totalExpenses) / state.receita * 100).toFixed(0);
-      if (savingRate > 0) {
-        analysis += `Voce conseguiu poupar ${savingRate}% da sua renda este mes, o que e ${savingRate >= 20 ? 'excelente' : savingRate >= 10 ? 'bom' : 'um comeco'}. `;
-      } else {
-        analysis += `Seus gastos ultrapassaram sua receita em R$ ${formatCurrency(totalExpenses - state.receita)}. Recomendo revisar os gastos com ${topCat[0]} para equilibrar suas financas. `;
-      }
-    }
-
-    if (catEntries.length > 1) {
-      analysis += `Seus tres maiores gastos sao: ${catEntries.slice(0, 3).map(([c, v]) => `${c} (R$ ${formatCurrency(v)})`).join(', ')}. `;
-    }
-
-    analysis += 'Considere definir metas por categoria para controlar melhor seus gastos mensais.';
-  } else {
-    analysis = 'Adicione transacoes para receber uma analise personalizada dos seus gastos.';
-  }
-
-  // Typing effect
-  let i = 0;
-  textEl.innerHTML = '<span class="typing-cursor"></span>';
-
-  const interval = setInterval(() => {
-    if (i < analysis.length) {
-      textEl.innerHTML = analysis.substring(0, i + 1) + '<span class="typing-cursor"></span>';
-      i++;
-    } else {
-      clearInterval(interval);
-      textEl.textContent = analysis;
-      state.aiUsed = true;
-      if (limitEl) limitEl.style.display = 'block';
-    }
-  }, 18);
-}
-
-// ========================================
-// SIDEBAR COMPONENT
-// ========================================
-function renderSidebar(active) {
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard', hash: '#/dashboard' },
-    { id: 'transacoes', label: 'Transacoes', icon: 'list', hash: '#/transacoes' },
-    { id: 'upload', label: 'Upload', icon: 'upload', hash: '#/test-drive' },
-    { id: 'insights', label: 'Insights IA', icon: 'sparkles', hash: null, plus: true },
-    { id: 'planejamento', label: 'Planejamento', icon: 'calendar', hash: null, plus: true },
-    { id: 'configuracoes', label: 'Configuracoes', icon: 'settings', hash: '#/configuracoes' },
-  ];
-
-  return `
-    <aside class="sidebar" data-testid="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-logo-icon">CT</div>
-        <span class="sidebar-logo-text">Cash Tracking</span>
-      </div>
-      <nav class="sidebar-nav">
-        ${menuItems.map(item => `
-          <button class="sidebar-menu-item ${active === item.id ? 'active' : ''}"
-            data-testid="sidebar-menu-${item.id}"
-            ${item.hash ? `onclick="navigate('${item.hash}')"` : 'disabled'}
-          >
-            <i data-lucide="${item.icon}" class="menu-icon-svg"></i>
-            <span class="menu-item-label">${item.label}</span>
-            ${item.plus ? '<span class="badge-plus">PLUS</span>' : ''}
-          </button>
-        `).join('')}
-      </nav>
-      <div class="sidebar-upgrade" data-testid="sidebar-upgrade-cta">
-        <h4>Cash Tracking Plus</h4>
-        <p>IA ilimitada, planejamento e relatorios avancados.</p>
-        <button class="btn-upgrade">R$ 15/mes</button>
-      </div>
-    </aside>
-  `;
-}
-
-function toggleMobileSidebar() {
-  const sidebar = document.querySelector('.sidebar');
-  if (!sidebar) return;
-
-  if (sidebar.classList.contains('mobile-open')) {
-    sidebar.classList.remove('mobile-open');
-    const overlay = document.querySelector('.mobile-overlay');
-    if (overlay) overlay.remove();
-  } else {
-    sidebar.classList.add('mobile-open');
-    const overlay = document.createElement('div');
-    overlay.className = 'mobile-overlay';
-    overlay.addEventListener('click', () => toggleMobileSidebar());
-    document.body.appendChild(overlay);
-  }
-}
-
-// ========================================
-// SCREEN: CONFIGURACOES
-// ========================================
-function renderConfiguracoes() {
-  const user = getUser();
-  const isTest = state.isTestDrive || !isLoggedIn();
-
-  APP.innerHTML = `
-    <div class="dashboard-layout">
-      ${renderSidebar('configuracoes')}
-      <div class="dashboard-main">
-        <div class="mobile-header">
-          <button class="hamburger-btn" onclick="toggleMobileSidebar()"><i data-lucide="menu" style="width:18px;height:18px"></i></button>
-          <h2>Configuracoes</h2>
-        </div>
-
-        <h1 data-testid="settings-title">Configuracoes</h1>
-
-        <div data-testid="settings-profile" class="settings-section" style="margin-top:24px">
-          <h3>Perfil</h3>
-          <div class="settings-row">
-            <label>Nome</label>
-            <input type="text" value="${user?.nome || ''}" ${isLoggedIn() ? '' : 'disabled'} placeholder="Seu nome">
-          </div>
-          <div class="settings-row">
-            <label>E-mail</label>
-            <input type="email" value="${user?.email || ''}" disabled placeholder="seu@email.com">
-          </div>
-        </div>
-
-        <div data-testid="settings-preferences" class="settings-section">
-          <h3>Preferencias</h3>
-          <div class="settings-row">
-            <label>Tema</label>
-            <select disabled>
-              <option>Dark</option>
-            </select>
-          </div>
-          <div class="settings-row">
-            <label>Moeda</label>
-            <select disabled>
-              <option>BRL (R$)</option>
-            </select>
-          </div>
-        </div>
-
-        ${isTest ? `
-        <div class="cta-card" style="text-align:left;margin-top:24px">
-          <p>Crie uma conta para salvar suas preferencias</p>
-          <button class="btn-primary" style="max-width:200px" onclick="navigate('#/registro')">Criar conta</button>
-        </div>
-        ` : `
-        <div class="settings-section">
-          <h3>Conta</h3>
-          <div class="settings-actions">
-            <button class="btn-danger" data-testid="btn-logout">Sair</button>
-            <button class="btn-outline-danger">Excluir conta</button>
-          </div>
-        </div>
-        `}
-      </div>
-    </div>
-  `;
-
-  const logoutBtn = APP.querySelector('[data-testid="btn-logout"]');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('usuario');
-      sessionStorage.clear();
-      state = { transacoes: [], receita: 0, receitaSaved: false, manualEntries: [], aiUsed: false, isTestDrive: false };
-      navigate('#/');
+  // Animate values
+  requestAnimationFrame(() => {
+    $$('[data-animate-value]').forEach(el => {
+      animateValue(el, parseFloat(el.dataset.animateValue));
     });
-  }
+  });
 }
 
 // ========================================
-// SCREEN: UPLOAD (post-login)
+// DASHBOARD: Summary Cards
 // ========================================
-function renderUpload() {
-  APP.innerHTML = `
-    <div class="upload-page">
-      <div class="upload-container">
-        <button class="back-button" onclick="navigate('#/dashboard')">\u2190 Voltar ao Dashboard</button>
-        <h2>Upload de Extrato</h2>
-        <p class="subtitle" style="color:var(--text-muted);margin-bottom:24px">Importe seu extrato bancario para categorizar automaticamente</p>
-        <div class="test-drive-card">
-          <div class="upload-dropzone" data-testid="upload-dropzone">
-            <div class="upload-dropzone-icon"><i data-lucide="upload" style="width:22px;height:22px"></i></div>
-            <p>Arraste seu arquivo aqui</p>
-            <span class="upload-hint">PDF, CSV, OFX ou TXT</span>
-          </div>
-          <input type="file" class="hidden-input" data-testid="upload-file-input" accept=".pdf,.csv,.txt,.ofx">
-          <div class="upload-progress" data-testid="upload-progress">
-            <div class="progress-bar"><div class="progress-fill"></div></div>
-          </div>
+function renderSummaryCards(totalExpenses, totalFixed, balance) {
+  const grid = $('[data-testid="summary-grid"]');
+  const sparkIncome = [3800, 4100, 3900, 4200, 4500, 4300, 4500];
+  const sparkExpense = [1800, 2100, 1900, 2300, 1700, 2000, totalExpenses];
+  const sparkBalance = sparkIncome.map((v, i) => v - sparkExpense[i]);
+  const sparkFixed = [1500, 1500, 1550, 1590, 1590, 1590, totalFixed];
+
+  grid.innerHTML = `
+    <div class="summary-card animate-in" data-testid="summary-card-income" style="animation-delay:0s">
+      <div class="summary-border" style="background:#34d399"></div>
+      <div class="summary-header">
+        <div>
+          <div class="summary-label">Receita do mes</div>
+          <div class="summary-value mono" data-testid="summary-value-income" data-animate-value="${state.revenue}" data-raw-value="${state.revenue}">${formatCurrency(0)}</div>
+          <div class="summary-trend positive">\u25B2 5.2% vs mes anterior</div>
         </div>
+        ${sparklineSVG(sparkIncome, '#34d399')}
       </div>
     </div>
-  `;
+    <div class="summary-card animate-in" data-testid="summary-card-expenses" style="animation-delay:0.08s">
+      <div class="summary-border" style="background:#f87171"></div>
+      <div class="summary-header">
+        <div>
+          <div class="summary-label">Total de gastos</div>
+          <div class="summary-value mono" data-testid="summary-value-expenses" data-animate-value="${totalExpenses}" data-raw-value="${totalExpenses}">${formatCurrency(0)}</div>
+          <div class="summary-trend negative">\u25BC 8.4% vs mes anterior</div>
+        </div>
+        ${sparklineSVG(sparkExpense, '#f87171')}
+      </div>
+    </div>
+    <div class="summary-card animate-in" data-testid="summary-card-balance" style="animation-delay:0.16s">
+      <div class="summary-border" style="background:${balance >= 0 ? '#818cf8' : '#f87171'}"></div>
+      <div class="summary-header">
+        <div>
+          <div class="summary-label">Saldo disponivel</div>
+          <div class="summary-value mono" data-testid="summary-value-balance" style="color:${balance >= 0 ? '#818cf8' : '#f87171'}" data-animate-value="${Math.abs(balance)}" data-raw-value="${balance}">${formatCurrency(0)}</div>
+          <div class="summary-trend ${balance >= 0 ? 'positive' : 'negative'}">${balance >= 0 ? '\u25B2' : '\u25BC'} ${balance >= 0 ? '+' : ''}${((balance / state.revenue) * 100).toFixed(1)}%</div>
+        </div>
+        ${sparklineSVG(sparkBalance, balance >= 0 ? '#818cf8' : '#f87171')}
+      </div>
+    </div>
+    <div class="summary-card animate-in" data-testid="summary-card-fixed" style="animation-delay:0.24s">
+      <div class="summary-border" style="background:#f59e0b"></div>
+      <div class="summary-header">
+        <div>
+          <div class="summary-label">Contas fixas</div>
+          <div class="summary-value mono" data-testid="summary-value-fixed" data-animate-value="${totalFixed}" data-raw-value="${totalFixed}">${formatCurrency(0)}</div>
+          <div class="summary-trend negative">\u25B2 2.1% vs mes anterior</div>
+        </div>
+        ${sparklineSVG(sparkFixed, '#f59e0b')}
+      </div>
+    </div>`;
+}
 
-  const dropzone = APP.querySelector('[data-testid="upload-dropzone"]');
-  const fileInput = APP.querySelector('[data-testid="upload-file-input"]');
+// ========================================
+// DASHBOARD: Recent Transactions
+// ========================================
+function renderTransactions() {
+  const card = $('[data-testid="transactions-card"]');
+  const txns = state.transactions.slice(0, 10);
 
-  dropzone.addEventListener('click', () => fileInput.click());
+  card.innerHTML = `
+    <div class="transactions-card-header">
+      <div>
+        <h3>Transacoes recentes<span class="count">${state.transactions.length}</span></h3>
+      </div>
+      <a href="javascript:void(0)" data-testid="link-ver-todas">Ver todas &rarr;</a>
+    </div>
+    <div class="transaction-list">
+      ${txns.map((t, i) => {
+        const cat = t.category || 'Outros';
+        const info = CATEGORIES[cat] || CATEGORIES.Outros;
+        const isExpense = t.value < 0;
+        return `
+          <div class="transaction-row animate-in" style="animation-delay:${i * 0.04}s">
+            <div class="transaction-icon" style="background:${info.color}15">
+              ${info.icon}
+            </div>
+            <div class="transaction-info">
+              <div class="transaction-desc">${t.desc}</div>
+              <div class="transaction-date">${formatDate(t.date)}</div>
+            </div>
+            <div class="transaction-badge">
+              <span class="badge badge-${cat.toLowerCase()}">${cat}</span>
+            </div>
+            <div class="transaction-value ${isExpense ? 'expense' : 'income'}">
+              ${isExpense ? '- ' : '+ '}${formatCurrency(t.value)}
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+
+  // "Ver todas" link navigates to transacoes view
+  const link = $('[data-testid="link-ver-todas"]');
+  if (link) link.onclick = (e) => { e.preventDefault(); switchView('transacoes'); };
+}
+
+// ========================================
+// DASHBOARD: Debts (compact)
+// ========================================
+function renderDebts() {
+  const card = $('[data-testid="debts-card"]');
+  card.innerHTML = `
+    <h3>Dividas ativas</h3>
+    ${state.debts.map(d => {
+      const pct = ((d.paid / d.total) * 100).toFixed(0);
+      const remaining = d.total - d.paid;
+      const dueDate = formatDateFull(d.due);
+      return `
+        <div class="debt-item">
+          <div class="debt-header">
+            <span class="debt-name">${d.desc}</span>
+            <span class="debt-amounts mono">${formatCurrency(d.paid)} / ${formatCurrency(d.total)}</span>
+          </div>
+          <div class="debt-bar">
+            <div class="debt-bar-fill ${parseInt(pct) > 60 ? 'high' : 'low'}" style="width:${pct}%"></div>
+          </div>
+          <div class="debt-info">Vencimento: ${dueDate} \u2014 Restam ${formatCurrency(remaining)}</div>
+        </div>`;
+    }).join('')}`;
+}
+
+// ========================================
+// DASHBOARD: Donut Chart
+// ========================================
+function renderDonut(catEntries, totalExpenses) {
+  const card = $('[data-testid="donut-card"]');
+  card.innerHTML = `
+    <h3>Gastos por categoria</h3>
+    <div class="donut-wrapper">${donutSVG(catEntries, totalExpenses)}</div>
+    <div class="donut-legend">
+      ${catEntries.map(([cat, val]) => {
+        const pct = totalExpenses > 0 ? ((val / totalExpenses) * 100).toFixed(1) : '0.0';
+        const info = CATEGORIES[cat] || CATEGORIES.Outros;
+        return `
+          <div class="donut-legend-item">
+            <div class="donut-legend-dot" style="background:${info.color}"></div>
+            <span class="donut-legend-label">${info.icon} ${cat}</span>
+            <span class="donut-legend-value mono">${formatCurrency(val)}</span>
+            <span class="donut-legend-pct">${pct}%</span>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ========================================
+// DASHBOARD: Budget
+// ========================================
+function renderBudget(totalExpenses) {
+  const card = $('[data-testid="budget-card"]');
+  const pct = state.revenue > 0 ? ((totalExpenses / state.revenue) * 100) : 0;
+  const barClass = pct < 60 ? 'ok' : pct < 80 ? 'warn' : 'danger';
+
+  card.innerHTML = `
+    <h3>Uso do orcamento</h3>
+    <div class="budget-pct">${pct.toFixed(0)}%</div>
+    <div class="budget-label">da receita comprometida</div>
+    <div class="budget-bar">
+      <div class="budget-bar-fill ${barClass}" style="width:${Math.min(pct, 100)}%"></div>
+    </div>`;
+}
+
+// ========================================
+// DASHBOARD: Fixed Bills (compact)
+// ========================================
+function renderFixedBills() {
+  const card = $('[data-testid="fixed-card"]');
+  card.innerHTML = `
+    <h3>Contas fixas</h3>
+    ${state.fixed.map(f => {
+      const info = CATEGORIES[f.category] || CATEGORIES.Outros;
+      return `
+        <div class="fixed-item">
+          <span class="fixed-icon">${info.icon}</span>
+          <span class="fixed-desc">${f.desc}</span>
+          <span class="fixed-value mono">${formatCurrency(-f.value)}</span>
+        </div>`;
+    }).join('')}`;
+}
+
+// ========================================
+// DASHBOARD: AI Insight
+// ========================================
+function generateInsightText() {
+  const expenses = state.transactions.filter(t => t.value < 0);
+  const totalExpenses = expenses.reduce((s, t) => s + Math.abs(t.value), 0);
+
+  const catMap = {};
+  expenses.forEach(t => {
+    const cat = t.category || 'Outros';
+    catMap[cat] = (catMap[cat] || 0) + Math.abs(t.value);
+  });
+  const catEntries = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+
+  if (!catEntries.length) return 'Adicione transacoes para receber uma analise personalizada.';
+
+  const topCat = catEntries[0];
+  const topPct = ((topCat[1] / totalExpenses) * 100).toFixed(0);
+  const foodTotal = catMap['Alimentacao'] || 0;
+  const foodPct = totalExpenses > 0 ? ((foodTotal / totalExpenses) * 100).toFixed(0) : 0;
+  const commitPct = state.revenue > 0 ? ((totalExpenses / state.revenue) * 100).toFixed(0) : 0;
+  const totalFixed = state.fixed.reduce((s, f) => s + f.value, 0);
+  const freeMargin = state.revenue - totalExpenses - totalFixed;
+  const emergencyTarget = state.revenue * 0.10;
+
+  let text = `Sua maior categoria de gastos e ${topCat[0]} com ${topPct}% do total. `;
+  text += `Alimentacao representa ${foodPct}% (${formatCurrency(foodTotal)}). Considere estabelecer um teto de ${formatCurrency(foodTotal * 0.85)} para esta categoria. `;
+  text += `Voce ja comprometeu ${commitPct}% da sua receita mensal com gastos variaveis. `;
+  text += `Suas contas fixas somam ${formatCurrency(totalFixed)}, deixando uma margem livre de ${formatCurrency(Math.max(freeMargin, 0))}. `;
+  text += `Sugestao: reserve pelo menos ${formatCurrency(emergencyTarget)} (10% da receita) como fundo de emergencia mensal.`;
+  return text;
+}
+
+function showAIInsight() {
+  const aiCard = $('[data-testid="ai-card"]');
+  const aiText = $('[data-testid="ai-text"]');
+
+  if (state.aiShown) return;
+  state.aiShown = true;
+  aiCard.classList.add('visible');
+
+  const text = generateInsightText();
+  typewriter(aiText, text);
+
+  // Save to history
+  state.insightHistory.unshift({
+    date: new Date().toLocaleString('pt-BR'),
+    text,
+  });
+}
+
+// ========================================
+// UPLOAD MODAL (Dashboard)
+// ========================================
+function initUploadModal() {
+  const modal = $('#upload-modal');
+  const dropzone = $('[data-testid="modal-dropzone"]');
+  const fileInput = $('[data-testid="modal-file-input"]');
+  const processBtn = $('[data-testid="btn-modal-process"]');
+  const progressEl = $('[data-testid="modal-progress"]');
+
+  $('[data-testid="btn-upload-modal"]').onclick = () => {
+    modal.style.display = 'flex';
+    // Reset state
+    dropzone.style.display = 'flex';
+    processBtn.disabled = true;
+    progressEl.classList.remove('visible');
+    fileInput.value = '';
+  };
+
+  $('[data-testid="modal-close"]').onclick = () => { modal.style.display = 'none'; };
+  modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
+  dropzone.onclick = () => fileInput.click();
   dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
   dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
   dropzone.addEventListener('drop', (e) => {
     e.preventDefault();
     dropzone.classList.remove('drag-over');
-    if (e.dataTransfer.files[0]) handleFileUpload(e.dataTransfer.files[0]);
-  });
-  fileInput.addEventListener('change', (e) => {
-    if (e.target.files[0]) handleFileUpload(e.target.files[0]);
-  });
-}
-
-// ========================================
-// SCREEN: INPUT MANUAL (post-login)
-// ========================================
-function renderInputManual() {
-  APP.innerHTML = `
-    <div class="input-manual-page">
-      <div class="input-manual-container">
-        <button class="back-button" onclick="navigate('#/dashboard')">\u2190 Voltar ao Dashboard</button>
-        <h2>Adicionar Transacao</h2>
-        <p class="subtitle" style="color:var(--text-muted);margin-bottom:24px">Adicione transacoes manualmente</p>
-        <div class="test-drive-card">
-          <div class="manual-form">
-            <div class="form-group">
-              <label>Data</label>
-              <input type="date" data-testid="manual-date">
-            </div>
-            <div class="form-group">
-              <label>Descricao</label>
-              <input type="text" data-testid="manual-description" placeholder="Ex: Supermercado">
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Valor</label>
-                <input type="number" data-testid="manual-value" placeholder="0,00" step="0.01" min="0">
-              </div>
-              <div class="form-group">
-                <label>Tipo</label>
-                <select data-testid="manual-type">
-                  <option value="despesa">Despesa</option>
-                  <option value="receita">Receita</option>
-                </select>
-              </div>
-            </div>
-            <button class="btn-primary" data-testid="btn-add-manual">Adicionar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  APP.querySelector('[data-testid="btn-add-manual"]').addEventListener('click', async () => {
-    const dateEl = APP.querySelector('[data-testid="manual-date"]');
-    const descEl = APP.querySelector('[data-testid="manual-description"]');
-    const valEl = APP.querySelector('[data-testid="manual-value"]');
-    const typeEl = APP.querySelector('[data-testid="manual-type"]');
-
-    const dateVal = dateEl.value;
-    const desc = descEl.value.trim();
-    const valor = parseFloat(valEl.value);
-    const tipo = typeEl.value;
-
-    if (!dateVal || !desc || !valor || isNaN(valor)) return;
-
-    if (isLoggedIn()) {
-      try {
-        await apiFetch('/transacoes', {
-          method: 'POST',
-          body: JSON.stringify({ data: dateVal, descricao: desc, valor, tipo, categoria: categorize(desc) }),
-        });
-        navigate('#/transacoes');
-      } catch (err) {
-        // Fallback: add locally
-        const parts = dateVal.split('-');
-        state.transacoes.push({ data: `${parts[2]}/${parts[1]}/${parts[0]}`, descricao: desc, valor, tipo, categoria: categorize(desc) });
-        sessionStorage.setItem('transacoes', JSON.stringify(state.transacoes));
-        navigate('#/transacoes');
-      }
-    } else {
-      const parts = dateVal.split('-');
-      state.transacoes.push({ data: `${parts[2]}/${parts[1]}/${parts[0]}`, descricao: desc, valor, tipo, categoria: categorize(desc) });
-      sessionStorage.setItem('transacoes', JSON.stringify(state.transacoes));
-      navigate('#/transacoes');
+    if (e.dataTransfer.files[0]) {
+      fileInput.files = e.dataTransfer.files;
+      processBtn.disabled = false;
     }
   });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) processBtn.disabled = false;
+  });
+
+  processBtn.onclick = async () => {
+    if (!fileInput.files[0]) return;
+    processBtn.disabled = true;
+    dropzone.style.display = 'none';
+    progressEl.classList.add('visible');
+
+    const fill = progressEl.querySelector('.progress-fill');
+    let pct = 0;
+    const interval = setInterval(() => {
+      pct += Math.random() * 12 + 3;
+      if (pct > 85) pct = 85;
+      fill.style.width = pct + '%';
+    }, 100);
+
+    const txns = await processUpload(fileInput.files[0]);
+
+    clearInterval(interval);
+    fill.style.width = '100%';
+
+    setTimeout(() => {
+      modal.style.display = 'none';
+      if (txns && txns.length > 0) {
+        state.transactions = [...state.transactions, ...txns];
+        sessionStorage.setItem('ct_transactions', JSON.stringify(state.transactions));
+      }
+      // Refresh dashboard
+      initDashboard();
+    }, 500);
+  };
 }
+
+// ========================================
+// VIEW: TRANSACTIONS (Full table)
+// ========================================
+function getFilteredTransactions() {
+  let txns = [...state.transactions];
+
+  if (state.txFilterSearch) {
+    const q = state.txFilterSearch.toLowerCase();
+    txns = txns.filter(t => t.desc.toLowerCase().includes(q));
+  }
+
+  if (state.txFilterCategory) {
+    txns = txns.filter(t => t.category === state.txFilterCategory);
+  }
+
+  if (state.txFilterType === 'expense') {
+    txns = txns.filter(t => t.value < 0);
+  } else if (state.txFilterType === 'income') {
+    txns = txns.filter(t => t.value >= 0);
+  }
+
+  return txns;
+}
+
+function renderTransactionsView() {
+  const tbody = $('[data-testid="transactions-tbody"]');
+  const info = $('[data-testid="transactions-info"]');
+  const pagination = $('[data-testid="transactions-pagination"]');
+
+  // Bind filters
+  const searchInput = $('[data-testid="filter-search"]');
+  const catFilter = $('[data-testid="filter-category"]');
+  const typeFilter = $('[data-testid="filter-type"]');
+
+  searchInput.oninput = () => { state.txFilterSearch = searchInput.value; state.txPage = 1; renderTransactionsView(); };
+  catFilter.onchange = () => { state.txFilterCategory = catFilter.value; state.txPage = 1; renderTransactionsView(); };
+  typeFilter.onchange = () => { state.txFilterType = typeFilter.value; state.txPage = 1; renderTransactionsView(); };
+
+  // Bind "new transaction" button
+  $('[data-testid="btn-new-transaction"]').onclick = () => openTransactionModal();
+
+  const filtered = getFilteredTransactions();
+  const totalPages = Math.max(1, Math.ceil(filtered.length / state.txPerPage));
+  if (state.txPage > totalPages) state.txPage = totalPages;
+  const start = (state.txPage - 1) * state.txPerPage;
+  const page = filtered.slice(start, start + state.txPerPage);
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">\uD83D\uDCCB</div><p>Nenhuma transacao encontrada</p></div></td></tr>`;
+  } else {
+    tbody.innerHTML = page.map(t => {
+      const cat = t.category || 'Outros';
+      const isExpense = t.value < 0;
+      return `
+        <tr>
+          <td>${formatDate(t.date)}</td>
+          <td class="td-desc">${t.desc}</td>
+          <td><span class="badge badge-${cat.toLowerCase()}">${cat}</span></td>
+          <td class="td-value ${isExpense ? 'expense' : 'income'}">${isExpense ? '- ' : '+ '}${formatCurrency(t.value)}</td>
+          <td class="td-actions">
+            <button class="btn-icon" data-action="edit-tx" data-id="${t.id}" title="Editar">&#9998;</button>
+            <button class="btn-icon danger" data-action="delete-tx" data-id="${t.id}" title="Excluir">&times;</button>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  info.textContent = `${filtered.length} transacoes${state.txFilterSearch || state.txFilterCategory || state.txFilterType ? ' (filtradas)' : ''}`;
+
+  // Pagination
+  let pagHtml = '';
+  pagHtml += `<button ${state.txPage <= 1 ? 'disabled' : ''} data-page="${state.txPage - 1}">&laquo;</button>`;
+  for (let p = 1; p <= totalPages; p++) {
+    if (totalPages > 7 && p > 2 && p < totalPages - 1 && Math.abs(p - state.txPage) > 1) {
+      if (p === 3 || p === totalPages - 2) pagHtml += `<button disabled>...</button>`;
+      continue;
+    }
+    pagHtml += `<button class="${p === state.txPage ? 'active' : ''}" data-page="${p}">${p}</button>`;
+  }
+  pagHtml += `<button ${state.txPage >= totalPages ? 'disabled' : ''} data-page="${state.txPage + 1}">&raquo;</button>`;
+  pagination.innerHTML = pagHtml;
+
+  // Pagination clicks
+  pagination.querySelectorAll('button[data-page]').forEach(btn => {
+    btn.onclick = () => {
+      const p = parseInt(btn.dataset.page);
+      if (p >= 1 && p <= totalPages) { state.txPage = p; renderTransactionsView(); }
+    };
+  });
+
+  // Action buttons
+  tbody.querySelectorAll('[data-action="edit-tx"]').forEach(btn => {
+    btn.onclick = () => {
+      const tx = state.transactions.find(t => t.id == btn.dataset.id);
+      if (tx) openTransactionModal(tx);
+    };
+  });
+  tbody.querySelectorAll('[data-action="delete-tx"]').forEach(btn => {
+    btn.onclick = async () => {
+      const id = btn.dataset.id;
+      apiDeleteTransaction(id);
+      state.transactions = state.transactions.filter(t => t.id != id);
+      sessionStorage.setItem('ct_transactions', JSON.stringify(state.transactions));
+      renderTransactionsView();
+    };
+  });
+}
+
+// ========================================
+// VIEW: DEBTS (Full cards)
+// ========================================
+function renderDebtsView() {
+  const summary = $('[data-testid="debts-summary"]');
+  const grid = $('[data-testid="debts-grid"]');
+
+  $('[data-testid="btn-new-debt"]').onclick = () => openDebtModal();
+
+  const totalDebt = state.debts.reduce((s, d) => s + d.total, 0);
+  const totalPaid = state.debts.reduce((s, d) => s + d.paid, 0);
+  const totalRemaining = totalDebt - totalPaid;
+
+  summary.innerHTML = `
+    <div class="debts-summary-item">
+      <span class="debts-summary-label">Total em dividas</span>
+      <span class="debts-summary-value mono">${formatCurrency(totalDebt)}</span>
+    </div>
+    <div class="debts-summary-item">
+      <span class="debts-summary-label">Ja pago</span>
+      <span class="debts-summary-value mono" style="color:var(--color-income)">${formatCurrency(totalPaid)}</span>
+    </div>
+    <div class="debts-summary-item">
+      <span class="debts-summary-label">Restante</span>
+      <span class="debts-summary-value mono" style="color:var(--color-expense)">${formatCurrency(totalRemaining)}</span>
+    </div>`;
+
+  if (state.debts.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">\u2705</div><p>Nenhuma divida cadastrada</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = state.debts.map(d => {
+    const pct = d.total > 0 ? ((d.paid / d.total) * 100).toFixed(0) : 0;
+    const remaining = d.total - d.paid;
+    return `
+      <div class="debt-card">
+        <div class="debt-card-header">
+          <div>
+            <div class="debt-card-title">${d.desc}</div>
+            <div class="debt-card-due">Vencimento: ${formatDateFull(d.due)}</div>
+          </div>
+          <div class="debt-card-actions">
+            <button class="btn-icon" data-action="edit-debt" data-id="${d.id}" title="Editar">&#9998;</button>
+            <button class="btn-icon danger" data-action="delete-debt" data-id="${d.id}" title="Excluir">&times;</button>
+          </div>
+        </div>
+        <div class="debt-card-amounts">
+          <span class="debt-paid">Pago: ${formatCurrency(d.paid)}</span>
+          <span class="debt-remaining">Restam: ${formatCurrency(remaining)}</span>
+        </div>
+        <div class="debt-card-bar">
+          <div class="debt-card-bar-fill" style="width:${pct}%"></div>
+        </div>
+        <div class="debt-card-pct">${pct}% quitado</div>
+      </div>`;
+  }).join('');
+
+  grid.querySelectorAll('[data-action="edit-debt"]').forEach(btn => {
+    btn.onclick = () => {
+      const d = state.debts.find(d => d.id == btn.dataset.id);
+      if (d) openDebtModal(d);
+    };
+  });
+  grid.querySelectorAll('[data-action="delete-debt"]').forEach(btn => {
+    btn.onclick = async () => {
+      const id = btn.dataset.id;
+      apiDeleteDebt(id);
+      state.debts = state.debts.filter(d => d.id != id);
+      renderDebtsView();
+    };
+  });
+}
+
+// ========================================
+// VIEW: FIXED BILLS (Full cards)
+// ========================================
+function renderFixedView() {
+  const totalBar = $('[data-testid="fixed-total-bar"]');
+  const grid = $('[data-testid="fixed-grid"]');
+
+  $('[data-testid="btn-new-fixed"]').onclick = () => openFixedModal();
+
+  const totalFixed = state.fixed.reduce((s, f) => s + f.value, 0);
+
+  totalBar.innerHTML = `
+    <span class="fixed-total-label">Total mensal em contas fixas</span>
+    <span class="fixed-total-value mono">${formatCurrency(totalFixed)}</span>`;
+
+  if (state.fixed.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">\uD83D\uDCCB</div><p>Nenhuma conta fixa cadastrada</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = state.fixed.map(f => {
+    const info = CATEGORIES[f.category] || CATEGORIES.Outros;
+    return `
+      <div class="fixed-card-item">
+        <div class="fixed-card-icon" style="background:${info.color}15">${info.icon}</div>
+        <div class="fixed-card-info">
+          <div class="fixed-card-desc">${f.desc}</div>
+          <div class="fixed-card-cat">${f.category}</div>
+        </div>
+        <span class="fixed-card-value mono">${formatCurrency(f.value)}</span>
+        <div class="fixed-card-actions">
+          <button class="btn-icon" data-action="edit-fixed" data-id="${f.id}" title="Editar">&#9998;</button>
+          <button class="btn-icon danger" data-action="delete-fixed" data-id="${f.id}" title="Excluir">&times;</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  grid.querySelectorAll('[data-action="edit-fixed"]').forEach(btn => {
+    btn.onclick = () => {
+      const f = state.fixed.find(f => f.id == btn.dataset.id);
+      if (f) openFixedModal(f);
+    };
+  });
+  grid.querySelectorAll('[data-action="delete-fixed"]').forEach(btn => {
+    btn.onclick = async () => {
+      const id = btn.dataset.id;
+      apiDeleteFixed(id);
+      state.fixed = state.fixed.filter(f => f.id != id);
+      renderFixedView();
+    };
+  });
+}
+
+// ========================================
+// VIEW: INSIGHTS
+// ========================================
+function renderInsightsView() {
+  const textEl = $('[data-testid="insight-text"]');
+  const historyList = $('[data-testid="insight-history-list"]');
+
+  $('[data-testid="btn-generate-insight"]').onclick = () => {
+    const text = generateInsightText();
+    state.insightHistory.unshift({
+      date: new Date().toLocaleString('pt-BR'),
+      text,
+    });
+    typewriter(textEl, text);
+    renderInsightsView();
+  };
+
+  // Show current or last insight
+  if (state.insightHistory.length > 0) {
+    textEl.textContent = state.insightHistory[0].text;
+  } else {
+    textEl.textContent = 'Clique em "Gerar nova analise" para receber insights sobre suas financas.';
+  }
+
+  // Render history
+  if (state.insightHistory.length <= 1) {
+    historyList.innerHTML = '<p style="color:var(--text-muted);font-size:13px">Nenhuma analise anterior ainda.</p>';
+  } else {
+    historyList.innerHTML = state.insightHistory.slice(1).map(h => `
+      <div class="insight-history-item">
+        <div class="insight-history-date">${h.date}</div>
+        <div class="insight-history-text">${h.text}</div>
+      </div>`).join('');
+  }
+}
+
+// ========================================
+// MODAL: TRANSACTION (Create/Edit)
+// ========================================
+function openTransactionModal(tx = null) {
+  state.editingTx = tx;
+  const modal = $('#transaction-modal');
+  $('[data-testid="transaction-modal-title"]').textContent = tx ? 'Editar transacao' : 'Nova transacao';
+  $('[data-testid="tx-modal-desc"]').value = tx ? tx.desc : '';
+  $('[data-testid="tx-modal-value"]').value = tx ? Math.abs(tx.value) : '';
+  $('[data-testid="tx-modal-type"]').value = tx && tx.value >= 0 ? 'receita' : 'gasto';
+  $('[data-testid="tx-modal-category"]').value = tx ? tx.category : 'Alimentacao';
+  $('[data-testid="tx-modal-date"]').value = tx ? tx.date : todayISO();
+  modal.style.display = 'flex';
+}
+
+function initTransactionModal() {
+  const modal = $('#transaction-modal');
+
+  $('[data-testid="transaction-modal-close"]').onclick = () => { modal.style.display = 'none'; };
+  $('[data-testid="tx-modal-cancel"]').onclick = () => { modal.style.display = 'none'; };
+  modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
+  $('[data-testid="tx-modal-save"]').onclick = async () => {
+    const desc = $('[data-testid="tx-modal-desc"]').value.trim();
+    const value = parseFloat($('[data-testid="tx-modal-value"]').value);
+    const type = $('[data-testid="tx-modal-type"]').value;
+    const category = $('[data-testid="tx-modal-category"]').value;
+    const date = $('[data-testid="tx-modal-date"]').value || todayISO();
+
+    if (!desc || isNaN(value) || value <= 0) return;
+
+    const finalValue = type === 'gasto' ? -value : value;
+    const txData = { date, desc, category, value: finalValue };
+
+    if (state.editingTx) {
+      // Update existing
+      const tx = state.transactions.find(t => t.id === state.editingTx.id);
+      if (tx) {
+        tx.desc = desc;
+        tx.value = finalValue;
+        tx.category = category;
+        tx.date = date;
+      }
+    } else {
+      // Create new — persist to backend if logged in
+      const saved = await apiCreateTransaction(txData);
+      state.transactions.unshift({
+        id: saved ? saved.id : Date.now(),
+        ...txData,
+      });
+    }
+
+    sessionStorage.setItem('ct_transactions', JSON.stringify(state.transactions));
+    modal.style.display = 'none';
+    state.editingTx = null;
+    renderTransactionsView();
+  };
+}
+
+// ========================================
+// MODAL: DEBT (Create/Edit)
+// ========================================
+function openDebtModal(debt = null) {
+  state.editingDebt = debt;
+  const modal = $('#debt-modal');
+  $('[data-testid="debt-modal-title"]').textContent = debt ? 'Editar divida' : 'Nova divida';
+  $('[data-testid="debt-modal-desc"]').value = debt ? debt.desc : '';
+  $('[data-testid="debt-modal-total"]').value = debt ? debt.total : '';
+  $('[data-testid="debt-modal-paid"]').value = debt ? debt.paid : '';
+  $('[data-testid="debt-modal-due"]').value = debt ? debt.due : '';
+  modal.style.display = 'flex';
+}
+
+function initDebtModal() {
+  const modal = $('#debt-modal');
+
+  $('[data-testid="debt-modal-close"]').onclick = () => { modal.style.display = 'none'; };
+  $('[data-testid="debt-modal-cancel"]').onclick = () => { modal.style.display = 'none'; };
+  modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
+  $('[data-testid="debt-modal-save"]').onclick = async () => {
+    const desc = $('[data-testid="debt-modal-desc"]').value.trim();
+    const total = parseFloat($('[data-testid="debt-modal-total"]').value);
+    const paid = parseFloat($('[data-testid="debt-modal-paid"]').value) || 0;
+    const due = $('[data-testid="debt-modal-due"]').value;
+
+    if (!desc || isNaN(total) || total <= 0 || !due) return;
+
+    const debtData = { desc, total, paid, due };
+
+    if (state.editingDebt) {
+      const d = state.debts.find(d => d.id === state.editingDebt.id);
+      if (d) {
+        d.desc = desc;
+        d.total = total;
+        d.paid = paid;
+        d.due = due;
+      }
+    } else {
+      const saved = await apiCreateDebt(debtData);
+      state.debts.push({
+        id: saved ? saved.id : Date.now(),
+        ...debtData,
+      });
+    }
+
+    modal.style.display = 'none';
+    state.editingDebt = null;
+    renderDebtsView();
+  };
+}
+
+// ========================================
+// MODAL: FIXED BILL (Create/Edit)
+// ========================================
+function openFixedModal(fixed = null) {
+  state.editingFixed = fixed;
+  const modal = $('#fixed-modal');
+  $('[data-testid="fixed-modal-title"]').textContent = fixed ? 'Editar conta fixa' : 'Nova conta fixa';
+  $('[data-testid="fixed-modal-desc"]').value = fixed ? fixed.desc : '';
+  $('[data-testid="fixed-modal-value"]').value = fixed ? fixed.value : '';
+  $('[data-testid="fixed-modal-category"]').value = fixed ? fixed.category : 'Moradia';
+  modal.style.display = 'flex';
+}
+
+function initFixedModal() {
+  const modal = $('#fixed-modal');
+
+  $('[data-testid="fixed-modal-close"]').onclick = () => { modal.style.display = 'none'; };
+  $('[data-testid="fixed-modal-cancel"]').onclick = () => { modal.style.display = 'none'; };
+  modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
+  $('[data-testid="fixed-modal-save"]').onclick = async () => {
+    const desc = $('[data-testid="fixed-modal-desc"]').value.trim();
+    const value = parseFloat($('[data-testid="fixed-modal-value"]').value);
+    const category = $('[data-testid="fixed-modal-category"]').value;
+
+    if (!desc || isNaN(value) || value <= 0) return;
+
+    const fixedData = { desc, value, category };
+
+    if (state.editingFixed) {
+      const f = state.fixed.find(f => f.id === state.editingFixed.id);
+      if (f) {
+        f.desc = desc;
+        f.value = value;
+        f.category = category;
+      }
+    } else {
+      const saved = await apiCreateFixed(fixedData);
+      state.fixed.push({
+        id: saved ? saved.id : Date.now(),
+        ...fixedData,
+      });
+    }
+
+    modal.style.display = 'none';
+    state.editingFixed = null;
+    renderFixedView();
+  };
+}
+
+// ========================================
+// BOOT
+// ========================================
+document.addEventListener('DOMContentLoaded', async () => {
+  // Init all screen event listeners (always)
+  initWelcome();
+  initLogin();
+  initSignup();
+  initTestDrive();
+
+  // Check if already logged in
+  if (isLoggedIn()) {
+    state.isTestDrive = false;
+    showScreen('dashboard');
+    // Load real data from Supabase, fallback to mock
+    await loadDashboardFromAPI();
+    initDashboard();
+  } else {
+    showScreen('welcome');
+  }
+});

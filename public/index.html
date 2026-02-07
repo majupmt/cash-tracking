@@ -1,14 +1,491 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cash Tracking</title>
-    <link rel="stylesheet" href="/style.css">
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cash Tracking</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='32' height='32' rx='8' fill='%236366f1'/%3E%3Cpath d='M9 16L14 21L23 11' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 </head>
 <body>
-    <div id="app"></div>
-    <script src="/app.js"></script>
+  <div id="app">
+
+    <!-- ===== TELA 1: WELCOME ===== -->
+    <section id="screen-welcome" class="screen screen-welcome" data-testid="screen-welcome">
+      <div class="welcome-branding">
+        <div class="welcome-logo">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#6366f1"/><path d="M9 16L14 21L23 11" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="welcome-logo-text">Cash Tracking</span>
+        </div>
+        <div class="welcome-hero">
+          <h1>Controle financeiro <em>inteligente</em> e sem complicação.</h1>
+          <p>Importe seus extratos, categorize automaticamente e receba insights da IA para tomar decisoes melhores sobre seu dinheiro.</p>
+          <div class="welcome-badges">
+            <span class="welcome-badge">Upload de extratos</span>
+            <span class="welcome-badge">IA integrada</span>
+            <span class="welcome-badge">Dashboard em tempo real</span>
+          </div>
+        </div>
+      </div>
+      <div class="welcome-cta">
+        <h2>Bem-vindo de volta</h2>
+        <p class="subtitle">Entre na sua conta ou comece agora</p>
+        <button class="btn-primary" data-testid="btn-go-login">Entrar na minha conta</button>
+        <button class="btn-secondary" data-testid="btn-go-signup">Criar conta gratuita</button>
+        <p class="welcome-test-link">Quer testar antes? <a data-testid="link-test-drive">Faca um test drive &rarr;</a></p>
+      </div>
+    </section>
+
+    <!-- ===== TELA 2: LOGIN ===== -->
+    <section id="screen-login" class="screen screen-login" data-testid="screen-login">
+      <div class="auth-card">
+        <button class="back-button" data-testid="login-back">&larr; Voltar</button>
+        <div class="auth-logo">
+          <svg width="40" height="40" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#6366f1"/><path d="M9 16L14 21L23 11" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h2>Acessar sua conta</h2>
+        <p class="subtitle">Digite suas credenciais para continuar</p>
+        <div class="form-group">
+          <label>E-mail</label>
+          <div class="input-with-icon">
+            <span class="input-icon">&#9993;</span>
+            <input type="email" data-testid="login-email" placeholder="seu@email.com">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <div class="input-with-icon">
+            <span class="input-icon">&#128274;</span>
+            <input type="password" data-testid="login-password" placeholder="********">
+          </div>
+        </div>
+        <div class="error-message" data-testid="login-error"></div>
+        <button class="btn-primary" data-testid="btn-login" disabled>Entrar</button>
+        <p class="forgot-link">Esqueceu a senha? <a href="javascript:void(0)">Recuperar</a></p>
+      </div>
+    </section>
+
+    <!-- ===== TELA 3: SIGNUP ===== -->
+    <section id="screen-signup" class="screen screen-signup" data-testid="screen-signup">
+      <div class="auth-card">
+        <button class="back-button" data-testid="signup-back">&larr; Voltar</button>
+        <h2>Criar sua conta</h2>
+        <p class="subtitle">Comece a controlar suas financas agora</p>
+        <div class="form-group">
+          <label>Nome</label>
+          <div class="input-with-icon">
+            <span class="input-icon">&#128100;</span>
+            <input type="text" data-testid="signup-name" placeholder="Seu nome completo">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>E-mail</label>
+          <div class="input-with-icon">
+            <span class="input-icon">&#9993;</span>
+            <input type="email" data-testid="signup-email" placeholder="seu@email.com">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <div class="input-with-icon">
+            <span class="input-icon">&#128274;</span>
+            <input type="password" data-testid="signup-password" placeholder="Minimo 8 caracteres">
+          </div>
+        </div>
+        <div class="error-message" data-testid="signup-error"></div>
+        <button class="btn-primary" data-testid="btn-signup" disabled>Criar conta</button>
+        <div class="form-divider">ou</div>
+        <button class="btn-ghost" data-testid="btn-signup-testdrive">Quero fazer um test drive primeiro</button>
+      </div>
+    </section>
+
+    <!-- ===== TELA 4: TEST DRIVE ===== -->
+    <section id="screen-testdrive" class="screen screen-testdrive" data-testid="screen-testdrive">
+      <div class="testdrive-container">
+        <button class="back-button" data-testid="testdrive-back">&larr; Voltar</button>
+        <h2>Test Drive</h2>
+        <p class="subtitle">Experimente o Cash Tracking sem compromisso. Importe um extrato ou adicione dados manualmente para ver o dashboard em acao.</p>
+
+        <!-- Revenue -->
+        <div class="revenue-card">
+          <h3>Qual sua receita neste mes?</h3>
+          <div class="revenue-input-wrapper">
+            <span class="revenue-prefix">R$</span>
+            <input type="number" data-testid="testdrive-revenue" placeholder="Ex: 3500.00" step="0.01" min="0">
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-group">
+          <button class="tab-btn active" data-testid="tab-upload" data-tab="upload">Upload de extrato</button>
+          <button class="tab-btn" data-testid="tab-manual" data-tab="manual">Inclusao manual</button>
+        </div>
+
+        <!-- Tab: Upload -->
+        <div id="tab-content-upload" class="tab-content" data-testid="tab-content-upload">
+          <div class="upload-dropzone" data-testid="testdrive-dropzone">
+            <div class="upload-dropzone-icon">&#128196;</div>
+            <p>Arraste seu extrato aqui ou clique para simular</p>
+            <span class="upload-hint">PDF, CSV ou OFX &mdash; ate 10MB</span>
+          </div>
+          <input type="file" class="hidden-input" data-testid="testdrive-file-input" accept=".pdf,.csv,.ofx,.txt">
+          <div class="upload-progress" data-testid="testdrive-progress">
+            <div class="progress-bar"><div class="progress-fill" data-testid="testdrive-progress-fill"></div></div>
+          </div>
+          <div id="upload-success-area" data-testid="upload-success-area"></div>
+        </div>
+
+        <!-- Tab: Manual -->
+        <div id="tab-content-manual" class="tab-content" style="display:none" data-testid="tab-content-manual">
+          <div class="manual-form">
+            <div class="form-row">
+              <input type="text" data-testid="manual-desc" placeholder="Ex: Supermercado" style="grid-column:1/-1">
+            </div>
+            <div class="form-row">
+              <input type="number" data-testid="manual-value" placeholder="Valor (R$)" step="0.01" min="0">
+              <select data-testid="manual-type">
+                <option value="gasto">Gasto</option>
+                <option value="receita">Receita</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <select data-testid="manual-category">
+                <option value="Alimentacao">Alimentacao</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Saude">Saude</option>
+                <option value="Assinaturas">Assinaturas</option>
+                <option value="Lazer">Lazer</option>
+                <option value="Moradia">Moradia</option>
+                <option value="Educacao">Educacao</option>
+                <option value="Outros">Outros</option>
+              </select>
+            </div>
+            <button class="btn-primary" data-testid="btn-add-manual">+ Adicionar</button>
+          </div>
+          <div class="manual-entries-list" data-testid="manual-entries-list"></div>
+        </div>
+
+        <div class="testdrive-footer">
+          <button class="btn-primary" data-testid="btn-go-dashboard" disabled>Ver meu dashboard &rarr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TELA 5: DASHBOARD ===== -->
+    <section id="screen-dashboard" class="screen screen-dashboard" data-testid="screen-dashboard">
+      <!-- Sidebar -->
+      <aside class="sidebar" data-testid="sidebar">
+        <div class="sidebar-header">
+          <svg class="sidebar-logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#6366f1"/><path d="M9 16L14 21L23 11" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="sidebar-logo-text">Cash Tracking</span>
+        </div>
+        <nav class="sidebar-nav">
+          <button class="sidebar-menu-item active" data-testid="menu-dashboard" data-menu="dashboard">
+            <span class="menu-icon">&#9632;</span>
+            <span class="sidebar-menu-label">Dashboard</span>
+          </button>
+          <button class="sidebar-menu-item" data-testid="menu-transacoes" data-menu="transacoes">
+            <span class="menu-icon">&#8597;</span>
+            <span class="sidebar-menu-label">Transacoes</span>
+          </button>
+          <button class="sidebar-menu-item" data-testid="menu-dividas" data-menu="dividas">
+            <span class="menu-icon">&#9888;</span>
+            <span class="sidebar-menu-label">Dividas</span>
+          </button>
+          <button class="sidebar-menu-item" data-testid="menu-contas" data-menu="contas">
+            <span class="menu-icon">&#128204;</span>
+            <span class="sidebar-menu-label">Contas fixas</span>
+          </button>
+          <button class="sidebar-menu-item" data-testid="menu-insights" data-menu="insights">
+            <span class="menu-icon">&#10022;</span>
+            <span class="sidebar-menu-label">Insights IA</span>
+          </button>
+        </nav>
+        <div class="sidebar-footer">
+          <button class="sidebar-toggle" data-testid="sidebar-toggle">
+            <span class="menu-icon">&#9665;</span>
+            <span class="sidebar-menu-label">Recolher</span>
+          </button>
+          <button class="sidebar-logout" data-testid="sidebar-logout" style="display:none">
+            <span class="menu-icon">&#10140;</span>
+            <span class="sidebar-menu-label">Sair</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main content -->
+      <div class="dashboard-main">
+        <!-- Test drive banner -->
+        <div class="test-banner" data-testid="test-banner" style="display:none">
+          <span>Modo test drive &mdash; seus dados nao serao salvos.</span>
+          <button class="btn-banner" data-testid="banner-register">Criar conta para salvar</button>
+        </div>
+
+        <!-- Dashboard header -->
+        <div class="dash-header">
+          <div>
+            <h1 data-testid="dash-greeting">Seu Dashboard</h1>
+            <p class="dash-date" data-testid="dash-date"></p>
+          </div>
+          <div class="dash-header-actions">
+            <button class="btn-secondary btn-sm" data-testid="btn-upload-modal">&#128228; Upload extrato</button>
+            <button class="btn-primary btn-sm" data-testid="btn-ai-insight">&#10022; Insight da IA</button>
+          </div>
+        </div>
+
+        <!-- ===== VIEW: DASHBOARD (default) ===== -->
+        <div class="dash-view active" data-view="dashboard" data-testid="view-dashboard">
+          <!-- Summary cards -->
+          <div class="summary-grid" data-testid="summary-grid"></div>
+
+          <!-- Content grid -->
+          <div class="dash-content">
+            <div class="dash-left">
+              <div class="transactions-card" data-testid="transactions-card"></div>
+              <div class="debts-card" data-testid="debts-card"></div>
+            </div>
+            <div class="dash-right">
+              <div class="donut-card" data-testid="donut-card"></div>
+              <div class="budget-card" data-testid="budget-card"></div>
+              <div class="ai-card" data-testid="ai-card">
+                <div class="ai-card-header">
+                  <span class="ai-icon">&#10022;</span>
+                  <h3>Analise da IA</h3>
+                </div>
+                <div class="ai-insight-text" data-testid="ai-text"></div>
+              </div>
+              <div class="fixed-card" data-testid="fixed-card"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== VIEW: TRANSACOES ===== -->
+        <div class="dash-view" data-view="transacoes" data-testid="view-transacoes">
+          <div class="section-header">
+            <h2>Transacoes</h2>
+            <button class="btn-primary btn-sm" data-testid="btn-new-transaction">+ Nova transacao</button>
+          </div>
+          <div class="filters-bar" data-testid="filters-bar">
+            <input type="text" class="search-input" data-testid="filter-search" placeholder="Buscar transacao...">
+            <select data-testid="filter-category">
+              <option value="">Todas categorias</option>
+              <option value="Alimentacao">Alimentacao</option>
+              <option value="Transporte">Transporte</option>
+              <option value="Saude">Saude</option>
+              <option value="Assinaturas">Assinaturas</option>
+              <option value="Lazer">Lazer</option>
+              <option value="Moradia">Moradia</option>
+              <option value="Educacao">Educacao</option>
+              <option value="Outros">Outros</option>
+            </select>
+            <select data-testid="filter-type">
+              <option value="">Todos os tipos</option>
+              <option value="expense">Gastos</option>
+              <option value="income">Receitas</option>
+            </select>
+          </div>
+          <div class="transactions-table-wrapper" data-testid="transactions-table-wrapper">
+            <table class="full-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Descricao</th>
+                  <th>Categoria</th>
+                  <th>Valor</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody data-testid="transactions-tbody"></tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            <span class="table-info" data-testid="transactions-info"></span>
+            <div class="pagination" data-testid="transactions-pagination"></div>
+          </div>
+        </div>
+
+        <!-- ===== VIEW: DIVIDAS ===== -->
+        <div class="dash-view" data-view="dividas" data-testid="view-dividas">
+          <div class="section-header">
+            <h2>Dividas</h2>
+            <button class="btn-primary btn-sm" data-testid="btn-new-debt">+ Nova divida</button>
+          </div>
+          <div class="debts-summary" data-testid="debts-summary"></div>
+          <div class="debts-grid" data-testid="debts-grid"></div>
+        </div>
+
+        <!-- ===== VIEW: CONTAS FIXAS ===== -->
+        <div class="dash-view" data-view="contas" data-testid="view-contas">
+          <div class="section-header">
+            <h2>Contas Fixas</h2>
+            <button class="btn-primary btn-sm" data-testid="btn-new-fixed">+ Nova conta fixa</button>
+          </div>
+          <div class="fixed-total-bar" data-testid="fixed-total-bar"></div>
+          <div class="fixed-grid" data-testid="fixed-grid"></div>
+        </div>
+
+        <!-- ===== VIEW: INSIGHTS IA ===== -->
+        <div class="dash-view" data-view="insights" data-testid="view-insights">
+          <div class="section-header">
+            <h2>Insights da IA</h2>
+          </div>
+          <div class="insights-container">
+            <button class="btn-generate-insight" data-testid="btn-generate-insight">&#10022; Gerar nova analise</button>
+            <div class="insight-block" data-testid="insight-current">
+              <div class="insight-block-header">
+                <span class="insight-icon">&#10022;</span>
+                <h3>Analise atual</h3>
+              </div>
+              <div class="insight-block-text" data-testid="insight-text"></div>
+            </div>
+            <div class="insight-history" data-testid="insight-history">
+              <h3>Historico de analises</h3>
+              <div data-testid="insight-history-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Upload modal (hidden) -->
+  <div id="upload-modal" class="modal-overlay" style="display:none" data-testid="upload-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Upload de extrato</h3>
+        <button class="modal-close" data-testid="modal-close">&times;</button>
+      </div>
+      <div class="upload-dropzone" data-testid="modal-dropzone">
+        <div class="upload-dropzone-icon">&#128196;</div>
+        <p>Arraste seu extrato aqui ou clique para selecionar</p>
+        <span class="upload-hint">PDF, CSV ou OFX &mdash; ate 10MB</span>
+      </div>
+      <input type="file" class="hidden-input" data-testid="modal-file-input" accept=".pdf,.csv,.ofx,.txt">
+      <div class="upload-progress" data-testid="modal-progress">
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+      </div>
+      <button class="btn-primary" data-testid="btn-modal-process" style="margin-top:16px" disabled>Processar extrato</button>
+    </div>
+  </div>
+
+  <!-- Transaction modal -->
+  <div id="transaction-modal" class="modal-overlay" style="display:none" data-testid="transaction-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 data-testid="transaction-modal-title">Nova transacao</h3>
+        <button class="modal-close" data-testid="transaction-modal-close">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Descricao</label>
+        <input type="text" data-testid="tx-modal-desc" placeholder="Ex: Supermercado">
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <label>Valor (R$)</label>
+          <input type="number" data-testid="tx-modal-value" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Tipo</label>
+          <select data-testid="tx-modal-type">
+            <option value="gasto">Gasto</option>
+            <option value="receita">Receita</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <label>Categoria</label>
+          <select data-testid="tx-modal-category">
+            <option value="Alimentacao">Alimentacao</option>
+            <option value="Transporte">Transporte</option>
+            <option value="Saude">Saude</option>
+            <option value="Assinaturas">Assinaturas</option>
+            <option value="Lazer">Lazer</option>
+            <option value="Moradia">Moradia</option>
+            <option value="Educacao">Educacao</option>
+            <option value="Outros">Outros</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Data</label>
+          <input type="date" data-testid="tx-modal-date">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" data-testid="tx-modal-cancel">Cancelar</button>
+        <button class="btn-primary" data-testid="tx-modal-save">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Debt modal -->
+  <div id="debt-modal" class="modal-overlay" style="display:none" data-testid="debt-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 data-testid="debt-modal-title">Nova divida</h3>
+        <button class="modal-close" data-testid="debt-modal-close">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Descricao</label>
+        <input type="text" data-testid="debt-modal-desc" placeholder="Ex: Cartao Nubank">
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <label>Valor total (R$)</label>
+          <input type="number" data-testid="debt-modal-total" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Valor pago (R$)</label>
+          <input type="number" data-testid="debt-modal-paid" placeholder="0.00" step="0.01" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Vencimento</label>
+        <input type="date" data-testid="debt-modal-due">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" data-testid="debt-modal-cancel">Cancelar</button>
+        <button class="btn-primary" data-testid="debt-modal-save">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fixed bill modal -->
+  <div id="fixed-modal" class="modal-overlay" style="display:none" data-testid="fixed-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 data-testid="fixed-modal-title">Nova conta fixa</h3>
+        <button class="modal-close" data-testid="fixed-modal-close">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Descricao</label>
+        <input type="text" data-testid="fixed-modal-desc" placeholder="Ex: Aluguel">
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <label>Valor (R$)</label>
+          <input type="number" data-testid="fixed-modal-value" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Categoria</label>
+          <select data-testid="fixed-modal-category">
+            <option value="Moradia">Moradia</option>
+            <option value="Assinaturas">Assinaturas</option>
+            <option value="Saude">Saude</option>
+            <option value="Educacao">Educacao</option>
+            <option value="Transporte">Transporte</option>
+            <option value="Outros">Outros</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" data-testid="fixed-modal-cancel">Cancelar</button>
+        <button class="btn-primary" data-testid="fixed-modal-save">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
 </body>
 </html>

@@ -177,6 +177,34 @@ export const dividasRoutes = new Elysia({ prefix: '/dividas' })
         }
     })
     
+    // Toggle quitada
+    .patch('/:id/toggle-quitada', async ({ params, headers, set }) => {
+        try {
+            const { userId } = extrairUsuarioDoHeader(headers.authorization || null);
+
+            const [divida] = await sql`
+                UPDATE dividas
+                SET quitada = NOT quitada
+                WHERE id = ${params.id} AND usuario_id = ${userId}
+                RETURNING *
+            `;
+
+            if (!divida) {
+                set.status = 404;
+                return { error: 'Dívida não encontrada' };
+            }
+
+            return {
+                ...divida,
+                data_inicio: formatarData(divida.data_inicio),
+                created_at: formatarDataHora(divida.created_at)
+            };
+        } catch (error) {
+            set.status = 401;
+            return { error: 'Não autorizado' };
+        }
+    })
+
     // Registrar pagamento de parcela
     .post('/:id/pagar-parcela', async ({ params, headers, set }) => {
         try {

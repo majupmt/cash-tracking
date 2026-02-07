@@ -104,6 +104,30 @@ export const contasRoutes = new Elysia({ prefix: '/contas' })
         })
     })
 
+    // Toggle pago/pendente
+    .patch('/:id/toggle-pago', async ({ params, headers, set }) => {
+        try {
+            const { userId } = extrairUsuarioDoHeader(headers.authorization || null);
+
+            const [conta] = await sql`
+                UPDATE contas_fixas
+                SET pago = NOT COALESCE(pago, false)
+                WHERE id = ${params.id} AND usuario_id = ${userId}
+                RETURNING *
+            `;
+
+            if (!conta) {
+                set.status = 404;
+                return { error: 'Conta não encontrada' };
+            }
+
+            return conta;
+        } catch (error) {
+            set.status = 401;
+            return { error: 'Não autorizado' };
+        }
+    })
+
     // Desativar conta (soft delete)
     .delete('/:id', async ({ params, headers, set }) => {
         try {
