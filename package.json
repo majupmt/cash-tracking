@@ -3,8 +3,20 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "bun --hot index.ts",
+    "start": "bun index.ts",
+    "test": "bun test",
+    "test:e2e": "bunx playwright test",
+    "lint": "bunx @biomejs/biome check src/",
+    "lint:fix": "bunx @biomejs/biome check --write src/",
+    "typecheck": "bunx tsc --noEmit"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@biomejs/biome": "^1.9.4",
+    "@playwright/test": "^1.58.2",
+    "@types/bun": "latest",
+    "typescript": "^5.7.0"
   },
   "peerDependencies": {
     "typescript": "^5"

@@ -100,10 +100,26 @@ export async function initDatabase() {
             )
         `;
 
+        // Tabela de transacoes (extrato/manual)
+        await sql`
+            CREATE TABLE IF NOT EXISTS transacoes (
+                id SERIAL PRIMARY KEY,
+                data TEXT NOT NULL,
+                descricao TEXT NOT NULL,
+                valor DECIMAL(10, 2) NOT NULL,
+                tipo TEXT NOT NULL DEFAULT 'despesa',
+                categoria TEXT DEFAULT 'Outros',
+                usuario_id INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+            )
+        `;
+
         console.log('✅ Banco de dados inicializado');
     } catch (error) {
         console.error('❌ Erro ao inicializar banco:', error);
     }
 }
 
+export { sql };
 export default sql;
