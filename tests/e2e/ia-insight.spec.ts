@@ -1,34 +1,52 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { setupDashboard } from './helpers';
 
-// Helper: navigate to dashboard via test-drive
-async function goToDashboard(page: Page) {
-  await page.goto('/');
-  await page.getByTestId('btn-go-signup').click();
-  await page.getByTestId('btn-signup-testdrive').click();
-  await expect(page.getByTestId('screen-testdrive')).toBeVisible();
-  await page.getByTestId('testdrive-revenue').fill('4500');
-  await page.getByTestId('btn-go-dashboard').click();
-  await expect(page.getByTestId('screen-dashboard')).toBeVisible();
-}
-
-test.describe('Analise da IA', () => {
+test.describe('Insights IA', () => {
 
   test.beforeEach(async ({ page }) => {
-    await goToDashboard(page);
+    await setupDashboard(page);
   });
 
-  test('deve exibir card de IA no dashboard', async ({ page }) => {
+  test('card de IA visivel no dashboard', async ({ page }) => {
     await expect(page.getByTestId('ai-card')).toBeVisible();
   });
 
-  test('deve exibir botao de insight no header', async ({ page }) => {
+  test('botao insight no header visivel', async ({ page }) => {
     await expect(page.getByTestId('btn-ai-insight')).toBeVisible();
   });
 
-  test('deve navegar para view de insights via sidebar', async ({ page }) => {
+  test('navegar para view insights mostra botao gerar e area de texto', async ({ page }) => {
     await page.getByTestId('menu-insights').click();
     await expect(page.getByTestId('view-insights')).toHaveClass(/active/);
     await expect(page.getByTestId('btn-generate-insight')).toBeVisible();
+    await expect(page.getByTestId('insight-current')).toBeVisible();
   });
 
+  test('gerar insight mostra texto com analise financeira', async ({ page }) => {
+    await page.getByTestId('menu-insights').click();
+    await page.getByTestId('btn-generate-insight').click();
+
+    // Wait for typewriter effect to produce text
+    await expect(page.getByTestId('insight-text')).not.toBeEmpty({ timeout: 10000 });
+
+    const text = await page.getByTestId('insight-text').textContent();
+    expect(text!.length).toBeGreaterThan(20);
+  });
+
+  test('insight gerado aparece no historico', async ({ page }) => {
+    await page.getByTestId('menu-insights').click();
+    await page.getByTestId('btn-generate-insight').click();
+    await expect(page.getByTestId('insight-text')).not.toBeEmpty({ timeout: 10000 });
+
+    // History should have at least one item
+    const historyList = page.getByTestId('insight-history-list');
+    await expect(historyList).not.toBeEmpty({ timeout: 5000 });
+  });
+
+  test('botao insight no header gera analise e mostra no card', async ({ page }) => {
+    await page.getByTestId('btn-ai-insight').click();
+
+    // AI card text should populate
+    await expect(page.getByTestId('ai-text')).not.toBeEmpty({ timeout: 10000 });
+  });
 });

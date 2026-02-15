@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cash-tracking-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER:-cashuser}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-cashpass}
+      POSTGRES_DB: ${DB_NAME:-cash_tracking}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-cashuser} -d ${DB_NAME:-cash_tracking}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

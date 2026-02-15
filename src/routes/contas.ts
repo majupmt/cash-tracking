@@ -2,7 +2,7 @@ import { Elysia, t } from 'elysia';
 import sql from '../database/db';
 import { extrairUsuarioDoHeader } from '../middleware/auth';
 
-export const contasRoutes = new Elysia({ prefix: '/contas' })
+export const contasRoutes = new Elysia({ prefix: '/api/contas' })
 
     // Listar todas as contas ativas
     .get('/', async ({ headers, set }) => {

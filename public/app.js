@@ -28,7 +28,7 @@ const MOCK_TRANSACTIONS = [
   { id: 9,  date: "2026-02-11", desc: "Padaria Mineira",     category: "Alimentacao",  value: -18.50 },
   { id: 10, date: "2026-02-12", desc: "Aluguel",             category: "Moradia",      value: -1200.00 },
   { id: 11, date: "2026-02-13", desc: "Curso Udemy",         category: "Educacao",     value: -29.90 },
-  { id: 12, date: "2026-02-14", desc: "Uber Eats",           category: "Alimentacao",  value: -45.70 }
+  { id: 12, date: "2026-02-14", desc: "Salario",           category: "Alimentacao",  value: 34.800}
 ];
 
 const MOCK_DEBTS = [
@@ -125,10 +125,17 @@ async function apiFetch(url, options = {}) {
   if (options.body && typeof options.body === 'string') {
     headers['Content-Type'] = 'application/json';
   }
-  const res = await fetch(url, { ...options, headers });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Erro na requisicao');
-  return data;
+  console.log(`[API] ${options.method || 'GET'} ${url}`);
+  try {
+    const res = await fetch(url, { ...options, headers });
+    const data = await res.json();
+    console.log(`[API] ✓ ${res.status} ${url}:`, data);
+    if (!res.ok) throw new Error(data.error || `Erro ${res.status} na requisicao`);
+    return data;
+  } catch (err) {
+    console.error(`[API] ✗ ${options.method || 'GET'} ${url}:`, err);
+    throw err;
+  }
 }
 
 // ========================================
@@ -136,24 +143,27 @@ async function apiFetch(url, options = {}) {
 // ========================================
 async function loadDashboardFromAPI() {
   try {
+    console.log('🔄 Carregando dados do backend...');
     const [txRes, fixedRes, debtsRes, resumoRes] = await Promise.all([
-      apiFetch('/transacoes').catch(() => null),
-      apiFetch('/contas').catch(() => null),
-      apiFetch('/dividas').catch(() => null),
-      apiFetch('/dashboard/resumo').catch(() => null),
+      apiFetch('/api/transacoes').catch((e) => { console.warn('Erro em /api/transacoes:', e); return null; }),
+      apiFetch('/api/contas').catch((e) => { console.warn('Erro em /api/contas:', e); return null; }),
+      apiFetch('/api/dividas').catch((e) => { console.warn('Erro em /api/dividas:', e); return null; }),
+      apiFetch('/api/dashboard/resumo').catch((e) => { console.warn('Erro em /api/dashboard/resumo:', e); return null; }),
     ]);
 
     // Map backend transacoes → frontend transactions
-    if (txRes && txRes.transacoes && txRes.transacoes.length > 0) {
-      state.transactions = txRes.transacoes.map(t => ({
+    if (txRes && Array.isArray(txRes)) {
+      state.transactions = txRes.map(t => ({
         id: t.id,
         date: t.data,
         desc: t.descricao,
         category: t.categoria || categorize(t.descricao),
         value: Number(t.valor),
       }));
+      console.log(`✅ Carregadas ${state.transactions.length} transações do backend`);
     } else {
-      state.transactions = MOCK_TRANSACTIONS.map(t => ({ ...t }));
+      console.error('❌ Falha ao carregar transações do backend. Usando lista vazia.');
+      state.transactions = [];
     }
 
     // Map backend contas_fixas → frontend fixed
@@ -165,6 +175,7 @@ async function loadDashboardFromAPI() {
         category: c.categoria || 'Outros',
         pago: c.pago || false,
       }));
+      console.log(`✅ Carregadas ${state.fixed.length} contas fixas`);
     }
 
     // Map backend dividas → frontend debts
@@ -179,19 +190,20 @@ async function loadDashboardFromAPI() {
         parcelas_pagas: d.parcelas_pagas,
         quitada: d.quitada,
       }));
+      console.log(`✅ Carregadas ${state.debts.length} dívidas`);
     }
 
     // Revenue from dashboard resumo
     if (resumoRes && resumoRes.receitas != null) {
-      state.revenue = Number(resumoRes.receitas) || 4500;
+      state.revenue = Number(resumoRes.receitas) || 0;
     } else {
-      state.revenue = 4500;
+      state.revenue = 0;
     }
 
-    console.log('Dados carregados do Supabase');
+    console.log('✅ Dados carregados do backend com sucesso');
     return true;
   } catch (err) {
-    console.warn('Falha ao carregar do backend, usando dados locais:', err);
+    console.error('❌ Falha ao carregar do backend:', err);
     state.transactions = MOCK_TRANSACTIONS.map(t => ({ ...t }));
     state.revenue = 4500;
     return false;
@@ -215,6 +227,27 @@ async function apiCreateTransaction(tx) {
     return result.transacao;
   } catch (e) {
     console.warn('Erro ao salvar transacao no backend:', e);
+    return null;
+  }
+}
+
+// Update a transaction in backend
+async function apiUpdateTransaction(id, tx) {
+  if (!isLoggedIn()) return null;
+  try {
+    const result = await apiFetch(`/transacoes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        data: tx.date,
+        descricao: tx.desc,
+        valor: tx.value,
+        tipo: tx.value < 0 ? 'despesa' : 'receita',
+        categoria: tx.category,
+      }),
+    });
+    return result.transacao;
+  } catch (e) {
+    console.warn('Erro ao atualizar transacao no backend:', e);
     return null;
   }
 }
@@ -244,6 +277,25 @@ async function apiCreateFixed(fixed) {
   }
 }
 
+// Update a fixed bill in backend
+async function apiUpdateFixed(id, fixed) {
+  if (!isLoggedIn()) return null;
+  try {
+    const result = await apiFetch(`/contas/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        descricao: fixed.desc,
+        valor: fixed.value,
+        dia_vencimento: null,
+      }),
+    });
+    return result;
+  } catch (e) {
+    console.warn('Erro ao atualizar conta fixa no backend:', e);
+    return null;
+  }
+}
+
 // Delete a fixed bill from backend
 async function apiDeleteFixed(id) {
   if (!isLoggedIn()) return;
@@ -259,7 +311,6 @@ async function apiCreateDebt(debt) {
       body: JSON.stringify({
         descricao: debt.desc,
         valor_total: debt.total,
-        valor_parcela: debt.total,
         parcelas_total: 1,
         parcelas_pagas: 0,
         data_inicio: debt.due,
@@ -268,6 +319,26 @@ async function apiCreateDebt(debt) {
     return result;
   } catch (e) {
     console.warn('Erro ao salvar divida no backend:', e);
+    return null;
+  }
+}
+
+// Update a debt in backend
+async function apiUpdateDebt(id, debt) {
+  if (!isLoggedIn()) return null;
+  try {
+    const result = await apiFetch(`/dividas/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        descricao: debt.desc,
+        valor_total: debt.total,
+        valor_pago: debt.paid,
+        data_inicio: debt.due,
+      }),
+    });
+    return result;
+  } catch (e) {
+    console.warn('Erro ao atualizar divida no backend:', e);
     return null;
   }
 }
@@ -308,18 +379,47 @@ function navigateTo(screen) {
 function switchView(viewName) {
   state.currentView = viewName;
   $$('.dash-view').forEach(v => v.classList.remove('active'));
-  const target = $(`[data-view="${viewName}"]`);
+
+  // If user asked for 'receitas', show the transacoes view but set filters
+  const viewToShow = viewName === 'receitas' ? 'transacoes' : viewName;
+  const target = $(`[data-view="${viewToShow}"]`);
   if (target) target.classList.add('active');
 
-  // Update sidebar active
+  // Update sidebar active (use original viewName so menu highlights 'receitas' button)
   $$('.sidebar-menu-item').forEach(i => i.classList.remove('active'));
   const menuBtn = $(`[data-menu="${viewName}"]`);
   if (menuBtn) menuBtn.classList.add('active');
 
   // Render the view
   if (viewName === 'dashboard') refreshDashboardView();
-  else if (viewName === 'transacoes') renderTransactionsView();
-  else if (viewName === 'dividas') renderDebtsView();
+  else if (viewName === 'transacoes') {
+    state.txFilterType = '';
+    renderTransactionsView();
+  } else if (viewName === 'receitas') {
+    state.txFilterType = 'income';
+    // Try to fetch receitas from backend; fallback to client-side filter
+    (async () => {
+      try {
+        if (isLoggedIn()) {
+          const res = await apiFetch('/receitas');
+          if (res && res.receitas) {
+            state.receitas = res.receitas.map(t => ({
+              id: t.id,
+              date: t.data,
+              desc: t.descricao,
+              category: t.categoria || categorize(t.descricao),
+              value: Number(t.valor),
+            }));
+          }
+        }
+      } catch (e) {
+        // ignore and fallthrough to render using existing state
+        console.warn('Falha ao carregar receitas do backend, usando cache/local', e);
+      } finally {
+        renderTransactionsView();
+      }
+    })();
+  } else if (viewName === 'dividas') renderDebtsView();
   else if (viewName === 'contas') renderFixedView();
   else if (viewName === 'insights') renderInsightsView();
 }
@@ -453,13 +553,20 @@ function parseCSVClient(content) {
 // UPLOAD: Real file processing
 // ========================================
 async function processUpload(file) {
+  console.log(`📤 Processando upload: ${file.name} (${(file.size / 1024).toFixed(2)}KB)`);
+  
   // Try server-side first
   try {
     const formData = new FormData();
     formData.append('file', file);
+    console.log(`📤 Enviando para servidor...`);
     const res = await fetch('/api/upload-extrato', { method: 'POST', body: formData });
     const data = await res.json();
+    
+    console.log(`📤 Resposta do servidor:`, data);
+    
     if (data.success && data.transactions && data.transactions.length > 0) {
+      console.log(`✅ ${data.transactions.length} transações extraídas`);
       return data.transactions.map(t => ({
         id: t.id || Date.now() + Math.random(),
         date: t.date,
@@ -467,19 +574,27 @@ async function processUpload(file) {
         category: t.category,
         value: t.value,
       }));
+    } else {
+      console.warn(`⚠️ Resposta sem transações:`, data);
     }
   } catch (e) {
+    console.error(`❌ Erro no servidor:`, e);
     // Server unavailable, fall through to client-side
   }
 
   // Client-side fallback for CSV
+  console.log(`🔄 Tentando fallback client-side...`);
   const content = await file.text();
   const filename = file.name.toLowerCase();
   if (filename.endsWith('.csv') || filename.endsWith('.txt')) {
     const txns = parseCSVClient(content);
-    if (txns.length > 0) return txns;
+    if (txns.length > 0) {
+      console.log(`✅ ${txns.length} transações do cliente`);
+      return txns;
+    }
   }
 
+  console.error(`❌ Nenhuma transação encontrada`);
   return null;
 }
 
@@ -518,7 +633,7 @@ function initLogin() {
     errEl.classList.remove('visible');
     errEl.textContent = '';
     try {
-      const data = await apiFetch('/auth/login', {
+      const data = await apiFetch('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email: emailEl.value.trim(), senha: passEl.value }),
       });
@@ -574,7 +689,7 @@ function initSignup() {
     if (senha.length < 8) { errEl.textContent = 'Senha deve ter no minimo 8 caracteres'; errEl.classList.add('visible'); return; }
 
     try {
-      const data = await apiFetch('/auth/cadastro', {
+      const data = await apiFetch('/api/auth/cadastro', {
         method: 'POST',
         body: JSON.stringify({ nome, email, senha }),
       });
@@ -618,7 +733,93 @@ function initTestDrive() {
   function checkReady() {
     const hasRevenue = revenueInput.value && parseFloat(revenueInput.value) > 0;
     const hasData = state.uploadDone || state.manualEntries.length > 0;
-    dashBtn.disabled = !(hasRevenue || hasData);
+    dashBtn.disabled = !(hasRevenue && hasData);
+  }
+
+  function renderUploadReview(txns) {
+    successArea.innerHTML = `
+      <div class="upload-review" data-testid="upload-review">
+        <div class="upload-review-header">
+          <div class="upload-review-title">
+            <span class="success-icon">&#10003;</span>
+            <span>${txns.length} transacoes encontradas</span>
+          </div>
+          <button class="btn-ghost btn-sm" data-testid="upload-review-reupload">Enviar outro arquivo</button>
+        </div>
+        <div class="upload-review-table-wrapper">
+          <table class="upload-review-table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Descricao</th>
+                <th>Categoria</th>
+                <th>Valor</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody data-testid="upload-review-tbody">
+              ${txns.map((t, i) => `
+                <tr data-index="${i}">
+                  <td><input type="date" class="review-input review-date" value="${t.date}" data-testid="review-date-${i}"></td>
+                  <td><input type="text" class="review-input review-desc" value="${t.desc}" data-testid="review-desc-${i}"></td>
+                  <td>
+                    <select class="review-input review-cat" data-testid="review-cat-${i}">
+                      ${Object.keys(CATEGORIES).map(c =>
+                        `<option value="${c}" ${c === t.category ? 'selected' : ''}>${c}</option>`
+                      ).join('')}
+                    </select>
+                  </td>
+                  <td><input type="number" class="review-input review-value" value="${t.value}" step="0.01" data-testid="review-value-${i}"></td>
+                  <td><button class="entry-remove review-remove" data-index="${i}" data-testid="review-remove-${i}">&times;</button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+
+    // Re-upload button
+    successArea.querySelector('[data-testid="upload-review-reupload"]')?.addEventListener('click', () => {
+      state.uploadDone = false;
+      state.transactions = [];
+      successArea.innerHTML = '';
+      dropzone.style.display = '';
+      checkReady();
+    });
+
+    // Listen to edits
+    successArea.querySelectorAll('.review-input').forEach(input => {
+      input.addEventListener('change', () => {
+        const row = input.closest('tr');
+        const idx = parseInt(row.dataset.index);
+        const tx = state.transactions[idx];
+        if (!tx) return;
+        const dateInput = row.querySelector('.review-date');
+        const descInput = row.querySelector('.review-desc');
+        const catInput = row.querySelector('.review-cat');
+        const valInput = row.querySelector('.review-value');
+        tx.date = dateInput.value;
+        tx.desc = descInput.value;
+        tx.category = catInput.value;
+        tx.value = parseFloat(valInput.value) || 0;
+      });
+    });
+
+    // Remove buttons
+    successArea.querySelectorAll('.review-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.dataset.index);
+        state.transactions.splice(idx, 1);
+        if (state.transactions.length === 0) {
+          state.uploadDone = false;
+          successArea.innerHTML = '';
+          dropzone.style.display = '';
+        } else {
+          renderUploadReview(state.transactions);
+        }
+        checkReady();
+      });
+    });
   }
 
   revenueInput.addEventListener('input', checkReady);
@@ -659,21 +860,13 @@ function initTestDrive() {
       if (txns && txns.length > 0) {
         state.uploadDone = true;
         state.transactions = txns;
-        successArea.innerHTML = `
-          <div class="upload-success">
-            <div class="success-icon">\u2713</div>
-            <p>Extrato processado com sucesso</p>
-            <span>${txns.length} transacoes identificadas e categorizadas</span>
-          </div>`;
+        renderUploadReview(txns);
       } else {
-        // Fallback to mock
-        state.uploadDone = true;
-        state.transactions = MOCK_TRANSACTIONS.map(t => ({ ...t }));
+        state.uploadDone = false;
         successArea.innerHTML = `
-          <div class="upload-success">
-            <div class="success-icon">\u2713</div>
-            <p>Extrato processado com sucesso</p>
-            <span>${MOCK_TRANSACTIONS.length} transacoes identificadas e categorizadas</span>
+          <div class="upload-error">
+            <p>❌ Nenhuma transacao foi extraida do arquivo</p>
+            <p>Verifique o formato do arquivo (CSV/OFX/PDF/QFX)</p>
           </div>`;
       }
       checkReady();
@@ -737,7 +930,8 @@ function initTestDrive() {
 
   // Go to dashboard
   dashBtn.addEventListener('click', () => {
-    state.revenue = parseFloat(revenueInput.value) || 4500;
+    const revenueValue = parseFloat(revenueInput.value);
+    state.revenue = isNaN(revenueValue) ? 4500 : revenueValue;
     if (!state.transactions.length && state.manualEntries.length) {
       state.transactions = [...state.manualEntries];
     } else if (!state.transactions.length) {
@@ -758,12 +952,17 @@ function initDashboard() {
   // Load data from sessionStorage if needed
   if (!state.transactions.length) {
     const stored = sessionStorage.getItem('ct_transactions');
-    if (stored) state.transactions = JSON.parse(stored);
-    else state.transactions = MOCK_TRANSACTIONS.map(t => ({ ...t }));
+    if (stored) {
+      state.transactions = JSON.parse(stored);
+      console.log(`✅ Restauradas ${state.transactions.length} transações de sessionStorage`);
+    } else {
+      console.warn('⚠️ Dashboard sem transações carregadas. Estado vazio.');
+      state.transactions = [];
+    }
   }
-  if (!state.revenue) {
+  if (state.revenue === 0 || !state.revenue) {
     const storedRev = sessionStorage.getItem('ct_revenue');
-    if (storedRev) state.revenue = parseFloat(storedRev);
+    if (storedRev !== null) state.revenue = parseFloat(storedRev);
     else state.revenue = 4500;
   }
 
@@ -873,6 +1072,14 @@ function initDashboard() {
       animateValue(el, parseFloat(el.dataset.animateValue));
     });
   });
+
+  // Show AI insight automatically
+  if (!state.aiShown) {
+    const aiText = $('[data-testid="ai-text"]');
+    const text = generateInsightText();
+    aiText.textContent = text;
+    state.aiShown = true;
+  }
 }
 
 // ========================================
@@ -1243,6 +1450,13 @@ function renderTransactionsView() {
   const catFilter = $('[data-testid="filter-category"]');
   const typeFilter = $('[data-testid="filter-type"]');
 
+  // Adjust header title when viewing receitas
+  const headerTitle = $('[data-view="transacoes"] .section-header h2');
+  if (headerTitle) headerTitle.textContent = state.currentView === 'receitas' ? 'Receitas' : 'Transacoes';
+
+  // Ensure type filter control reflects current view filter
+  typeFilter.value = state.txFilterType === 'income' ? 'income' : (state.txFilterType === 'expense' ? 'expense' : '');
+
   searchInput.oninput = () => { state.txFilterSearch = searchInput.value; state.txPage = 1; renderTransactionsView(); };
   catFilter.onchange = () => { state.txFilterCategory = catFilter.value; state.txPage = 1; renderTransactionsView(); };
   typeFilter.onchange = () => { state.txFilterType = typeFilter.value; state.txPage = 1; renderTransactionsView(); };
@@ -1509,13 +1723,20 @@ function initTransactionModal() {
     const category = $('[data-testid="tx-modal-category"]').value;
     const date = $('[data-testid="tx-modal-date"]').value || todayISO();
 
-    if (!desc || isNaN(value) || value <= 0) return;
+    console.log(`📝 Salvando transação:`, { desc, value, type, category, date });
+
+    if (!desc || isNaN(value) || value <= 0) {
+      console.warn('❌ Validação falhou');
+      return;
+    }
 
     const finalValue = type === 'gasto' ? -value : value;
     const txData = { date, desc, category, value: finalValue };
 
     if (state.editingTx) {
-      // Update existing
+      // Update existing — persist to backend
+      console.log(`🔄 Atualizando transação ${state.editingTx.id}`);
+      await apiUpdateTransaction(state.editingTx.id, txData);
       const tx = state.transactions.find(t => t.id === state.editingTx.id);
       if (tx) {
         tx.desc = desc;
@@ -1525,6 +1746,7 @@ function initTransactionModal() {
       }
     } else {
       // Create new — persist to backend if logged in
+      console.log(`✨ Criando nova transação`);
       const saved = await apiCreateTransaction(txData);
       state.transactions.unshift({
         id: saved ? saved.id : Date.now(),
@@ -1571,6 +1793,8 @@ function initDebtModal() {
     const debtData = { desc, total, paid, due };
 
     if (state.editingDebt) {
+      // Update existing — persist to backend
+      await apiUpdateDebt(state.editingDebt.id, debtData);
       const d = state.debts.find(d => d.id === state.editingDebt.id);
       if (d) {
         d.desc = desc;
@@ -1622,6 +1846,8 @@ function initFixedModal() {
     const fixedData = { desc, value, category };
 
     if (state.editingFixed) {
+      // Update existing — persist to backend
+      await apiUpdateFixed(state.editingFixed.id, fixedData);
       const f = state.fixed.find(f => f.id === state.editingFixed.id);
       if (f) {
         f.desc = desc;

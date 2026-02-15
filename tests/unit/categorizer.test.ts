@@ -1,5 +1,4 @@
-import { test, expect, describe } from 'bun:test';
-import { categorize } from '../categorizer';
+import { categorize } from '../../src/services/categorizer';
 
 describe('categorize', () => {
   test('deve categorizar transporte', () => {

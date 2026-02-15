@@ -2,13 +2,15 @@ import { Elysia, t } from 'elysia';
 import sql from '../database/db';
 import { extrairUsuarioDoHeader } from '../middleware/auth';
 import { DashboardService } from '../services/dashboard';
+import { logger } from '../lib/logger';
 
-export const dashboardRoutes = new Elysia({ prefix: '/dashboard' })
+export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
 
     // Resumo geral do mês atual (formato antigo - mantido para compatibilidade)
     .get('/resumo', async ({ headers, set }) => {
         try {
             const { userId } = extrairUsuarioDoHeader(headers.authorization || null);
+            logger.info('📊 [DASHBOARD/RESUMO] Buscando resumo do dashboard', { userId });
 
             // Buscar receitas ativas
             const receitas = await sql`
@@ -16,6 +18,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/dashboard' })
                 WHERE ativo = true AND usuario_id = ${userId}
             `;
             const totalReceitas = Number(receitas[0]?.total || 0);
+            logger.info('   ✓ Receitas totais encontradas', { totalReceitas });
 
             // Buscar contas fixas ativas
             const contas = await sql`
@@ -23,13 +26,13 @@ export const dashboardRoutes = new Elysia({ prefix: '/dashboard' })
                 WHERE ativo = true AND usuario_id = ${userId}
             `;
             const totalContas = Number(contas[0]?.total || 0);
+            logger.info('   ✓ Contas fixas encontradas', { totalContas });
 
             // Buscar dívidas não quitadas
             const dividas = await sql`
                 SELECT
                     id,
                     descricao,
-                    valor_parcela,
                     parcelas_total,
                     parcelas_pagas,
                     (parcelas_total - parcelas_pagas) as parcelas_restantes,
@@ -37,20 +40,33 @@ export const dashboardRoutes = new Elysia({ prefix: '/dashboard' })
                 FROM dividas
                 WHERE quitada = false AND usuario_id = ${userId}
             `;
+            logger.info('   ✓ Dívidas encontradas', { count: dividas.length });
 
             // Total a pagar em dívidas este mês (soma das parcelas)
             const parcelasMesAtual = dividas.reduce((acc, d) => acc + Number(d.valor_parcela), 0);
-            const totalDevidasRestantes = dividas.reduce((acc, d) => acc + Number(d.valor_restante), 0);
+            const totalDividasRestantes = dividas.reduce(
+  (acc, d) => acc + Number(d.valor_restante),
+  0
+);
+
 
             // Calcular disponível
             const gastosMensais = totalContas + parcelasMesAtual;
             const disponivel = totalReceitas - gastosMensais;
 
+            logger.info('✅ [DASHBOARD/RESUMO] Resumo calculado com sucesso', {
+                totalReceitas,
+                totalContas,
+                parcelasMesAtual,
+                gastosMensais,
+                disponivel
+            });
+
             return {
                 receitas: totalReceitas,
                 contas_fixas: totalContas,
                 dividas_mes_atual: parcelasMesAtual,
-                dividas_total_restante: totalDevidasRestantes,
+                dividas_total_restante: totalDividasRestantes,
                 gastos_mensais: gastosMensais,
                 disponivel,
                 dividas_detalhes: dividas,
@@ -129,25 +145,19 @@ export const dashboardRoutes = new Elysia({ prefix: '/dashboard' })
                 SELECT * FROM dividas
                 WHERE quitada = false AND usuario_id = ${userId}
             `;
+const projecoes = dividas.map(d => {
+  const restante = Number(d.valor_total) - Number(d.valor_pago);
 
-            const projecoes = dividas.map(divida => {
-                const parcelasRestantes = Number(divida.parcelas_total) - Number(divida.parcelas_pagas);
-                const valorParcela = Number(divida.valor_parcela);
-                const valorRestante = parcelasRestantes * valorParcela;
-
-                return {
-                    divida: divida.descricao,
-                    valor_parcela: `R$ ${valorParcela.toFixed(2)}`,
-                    parcelas_restantes: parcelasRestantes,
-                    valor_total_restante: `R$ ${valorRestante.toFixed(2)}`,
-                    meses_para_quitar: parcelasRestantes,
-                    previsao_quitacao: `${parcelasRestantes} ${parcelasRestantes === 1 ? 'mês' : 'meses'}`
-                };
-            });
+  return {
+    divida: d.descricao,
+    valor_restante: restante,
+    previsao_quitacao: 'Depende do valor pago mensalmente'
+  };
+});
 
             return projecoes;
         } catch (error) {
             set.status = 401;
             return { error: 'Não autorizado' };
         }
-    });
+    })

@@ -1,10 +1,21 @@
+# Dependencies
 node_modules/
 bun.lockb
-*.db
-.env
 
-# SQL dumps
-*.sql
+# Environment
+.env
+.env.local
+
+# Lock file conflitante
+package-lock.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Editor swap/temp files
 *.swp
@@ -12,10 +23,25 @@ bun.lockb
 *~
 .*.swp
 
-# OS files
-.DS_Store
-Thumbs.db
+# Build
+dist/
+build/
+web/.next/
+web/node_modules/
 
-# Test results
+# Test
 test-results/
 playwright-report/
+coverage/
+
+# Uploads
+uploads/
+
+# Reports (gerados por agents)
+reports/
+
+# Docker
+pgdata/
+
+# SQL dumps
+*.sql

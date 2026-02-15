@@ -4,7 +4,7 @@ import sql from '../database/db';
 import { gerarToken } from '../middleware/auth';
 import type { AuthResponse, Usuario } from '../types/auth';
 
-export const authRoutes = new Elysia({ prefix: '/auth' })
+export const authRoutes = new Elysia({ prefix: '/api/auth' })
 
     .post('/cadastro', async ({ body, set }) => {
         try {
@@ -29,6 +29,12 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
                 VALUES (${nome}, ${email}, ${senha_hash})
                 RETURNING id, nome, email, created_at
             `;
+
+            // Verificar se novoUsuario foi criado corretamente
+            if (!novoUsuario) {
+                set.status = 500;
+                return { error: 'Erro ao criar usuário' };
+            }
 
             // Gerar token
             const token = gerarToken({
