@@ -6,16 +6,35 @@
   "scripts": {
     "dev": "bun --hot index.ts",
     "start": "bun index.ts",
-    "test": "bun test",
+    "dev:web": "cd web && bun run dev",
+    "dev:all": "bun run dev & bun run dev:web",
+    "build:web": "cd web && bun run build",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d",
+    "db:logs": "docker compose logs -f postgres",
+    "db:migrate": "bun run src/database/migrations.ts",
+    "db:generate": "bunx drizzle-kit generate",
+    "db:push": "bunx drizzle-kit push",
+    "db:studio": "bunx drizzle-kit studio",
+    "test:unit": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:e2e": "bunx playwright test",
+    "test": "bun run test:unit && bun run test:e2e",
     "lint": "bunx @biomejs/biome check src/",
     "lint:fix": "bunx @biomejs/biome check --write src/",
-    "typecheck": "bunx tsc --noEmit"
+    "typecheck": "bunx tsc --noEmit",
+    "agent:report": "node src/agents/report-agent.mjs",
+    "agent:db": "node src/agents/db-agent.mjs",
+    "agents": "echo '📊 Executando agentes...' && node src/agents/report-agent.mjs && echo '' && node src/agents/db-agent.mjs && echo '✅ Agentes finalizados! Relatórios em ./reports/'"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@playwright/test": "^1.58.2",
     "@types/bun": "latest",
+    "@types/jest": "^30.0.0",
+    "drizzle-kit": "^0.31.9",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
     "typescript": "^5.7.0"
   },
   "peerDependencies": {
@@ -28,6 +47,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "bcryptjs": "^3.0.3",
     "csv-parse": "^6.1.0",
+    "drizzle-orm": "^0.45.1",
     "elysia": "^1.4.19",
     "jsonwebtoken": "^9.0.3",
     "postgres": "^3.4.7"

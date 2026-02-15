@@ -19,20 +19,22 @@ function parseCSV(text: string) {
 
   for (let i = 1; i < lines.length; i++) {
     // Try semicolon separator first, then comma
-    let parts = lines[i].split(';').map(p => p.trim());
+    const line = lines[i] ?? '';
+    if (!line) continue;
+    let parts = line.split(';').map(p => p.trim());
     if (parts.length < 3) {
-      parts = lines[i].split(',').map(p => p.trim());
+      parts = line.split(',').map(p => p.trim());
     }
 
     if (parts.length >= 3) {
-      const valor = parseFloat(parts[2].replace(',', '.'));
+      const valor = parseFloat((parts[2] ?? '0').replace(',', '.'));
       if (!isNaN(valor)) {
         transactions.push({
-          data: parts[0],
-          descricao: parts[1],
+          data: parts[0] ?? '',
+          descricao: parts[1] ?? '',
           valor: Math.abs(valor),
           tipo: valor < 0 ? 'despesa' : 'receita',
-          categoria: categorize(parts[1]),
+          categoria: categorize(parts[1] ?? ''),
         });
       }
     }
@@ -41,7 +43,7 @@ function parseCSV(text: string) {
   return transactions;
 }
 
-export const extratoRoutes = new Elysia({ prefix: '/extrato' })
+export const extratoRoutes = new Elysia({ prefix: '/api/extrato' })
 
   .post('/upload', async ({ body, set }) => {
     try {

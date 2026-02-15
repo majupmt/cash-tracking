@@ -15,12 +15,22 @@ function log(level: LogLevel, message: string, meta?: Record<string, unknown>) {
     ...meta,
   };
   const line = JSON.stringify(entry);
+  
+  // Force flush with unbuffered output
+  const colorCodes = {
+    info: '\x1b[36m',    // cyan
+    warn: '\x1b[33m',    // yellow
+    error: '\x1b[31m',   // red
+    debug: '\x1b[35m',   // magenta
+  };
+  const resetCode = '\x1b[0m';
+  const colored = `${colorCodes[level]}[${level.toUpperCase()}]${resetCode} ${line}`;
+  
+  // Use write directly to stderr/stdout to bypass buffering
   if (level === 'error') {
-    console.error(line);
-  } else if (level === 'warn') {
-    console.warn(line);
+    Bun.stderr.write(colored + '\n');
   } else {
-    console.log(line);
+    Bun.stdout.write(colored + '\n');
   }
 }
 

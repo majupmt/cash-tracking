@@ -1,5 +1,4 @@
-import { test, expect, describe } from 'bun:test';
-import { parseCSV } from '../extrato-parser';
+import { parseCSV } from '../../src/services/extrato-parser'
 
 describe('parseCSV', () => {
   test('deve parsear CSV com separador ponto-e-virgula', () => {

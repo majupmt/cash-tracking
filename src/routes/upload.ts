@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia';
 import { parse } from 'csv-parse/sync';
+import { logger } from '../lib/logger';
 
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
   'Alimentacao': ['supermercado', 'mercado', 'ifood', 'uber eats', 'rappi', 'restaurante', 'padaria', 'acougue', 'hortifruti', 'lanchonete', 'pizza', 'burger', 'sushi', 'food', 'alimenta'],
@@ -76,9 +77,9 @@ function parseOFX(content: string) {
 
   while ((match = txRegex.exec(content)) !== null) {
     const block = match[1];
-    const getValue = (tag: string) => {
+   const getValue = (tag: string): string => {
       const m = new RegExp(`<${tag}>([^<\\n]+)`, 'i').exec(block);
-      return m ? m[1].trim() : '';
+      return m?.[1]?.trim() ?? '';
     };
 
     const dateRaw = getValue('DTPOSTED');
@@ -104,34 +105,87 @@ function parseOFX(content: string) {
 }
 
 export const uploadRoutes = new Elysia({ prefix: '/api' })
-  .post('/upload-extrato', async ({ body }) => {
+  .post('/upload-extrato', async ({ body, set }) => {
     try {
-      const file = body.file;
-      const content = await file.text();
-      const filename = file.name.toLowerCase();
+      const file = body.file as any;
+      
+      if (!file || !file.name) {
+        set.status = 400;
+        return { success: false, error: 'Nenhum arquivo foi enviado' };
+      }
 
+      const filename = file.name.toLowerCase();
+      
+      logger.info('upload_start', { filename, size: file.size });
+
+      // Limite de 10MB
+      const MAX_FILE_SIZE = 10 * 1024 * 1024;
+      if (file.size > MAX_FILE_SIZE) {
+        set.status = 400;
+        logger.warn('upload_too_large', { filename, size: file.size });
+        return { 
+          success: false, 
+          error: `Arquivo muito grande. Máximo: 10MB. Seu arquivo: ${(file.size / 1024 / 1024).toFixed(2)}MB` 
+        };
+      }
+
+      // Validar extensão
+      const validExtensions = ['.csv', '.ofx', '.qfx'];
+      const fileExt = filename.substring(filename.lastIndexOf('.'));
+      if (!validExtensions.includes(fileExt)) {
+        set.status = 400;
+        logger.warn('upload_invalid_ext', { filename, ext: fileExt });
+        return { 
+          success: false, 
+          error: `Formato não suportado. Aceita: CSV, OFX, QFX` 
+        };
+      }
+      
       let transactions;
+      
+      logger.info('upload_parsing', { filename, format: fileExt });
+      const content = await file.text();
       if (filename.endsWith('.ofx') || filename.endsWith('.qfx')) {
         transactions = parseOFX(content);
       } else {
         transactions = parseCSV(content);
       }
 
+      logger.info('upload_parsed', { filename, count: transactions.length });
+
       if (transactions.length === 0) {
+        set.status = 400;
+        logger.warn('upload_no_transactions', { filename });
         return { success: false, error: 'Nenhuma transacao encontrada no arquivo. Verifique o formato.' };
       }
+
+      // Limite máximo de transações por upload: 500
+      if (transactions.length > 500) {
+        set.status = 400;
+        logger.warn('upload_too_many', { filename, count: transactions.length });
+        return { 
+          success: false, 
+          error: `Muitas transações (${transactions.length}). Máximo: 500 por arquivo.` 
+        };
+      }
+
+      const summary = {
+        total: transactions.length,
+        income: transactions.filter((t: any) => t.value > 0).reduce((s: number, t: any) => s + t.value, 0),
+        expenses: transactions.filter((t: any) => t.value < 0).reduce((s: number, t: any) => s + Math.abs(t.value), 0),
+        categories: Array.from(new Set(transactions.map((t: any) => t.category))),
+      };
+
+      logger.info('upload_success', { filename, summary });
 
       return {
         success: true,
         transactions,
-        summary: {
-          total: transactions.length,
-          income: transactions.filter((t: any) => t.value > 0).reduce((s: number, t: any) => s + t.value, 0),
-          expenses: transactions.filter((t: any) => t.value < 0).reduce((s: number, t: any) => s + Math.abs(t.value), 0),
-          categories: [...new Set(transactions.map((t: any) => t.category))],
-        }
+        summary,
       };
     } catch (error: any) {
+      set.status = 500;
+      logger.error('upload_error', { error: error.message, stack: error.stack });
       return { success: false, error: 'Erro ao processar arquivo: ' + error.message };
     }
   }, {

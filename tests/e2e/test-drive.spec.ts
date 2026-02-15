@@ -1,68 +1,73 @@
 import { test, expect } from '@playwright/test';
+import { goToTestDrive, addManualEntry } from './helpers';
 
 test.describe('Fluxo Test-Drive', () => {
 
-  // Helper: navigate to test-drive screen via UI
-  async function goToTestDrive(page) {
-    await page.goto('/');
-    await page.getByTestId('btn-go-signup').click();
-    await page.getByTestId('btn-signup-testdrive').click();
-    await expect(page.getByTestId('screen-testdrive')).toBeVisible();
-  }
-
-  test('deve navegar Welcome -> Signup -> Test-Drive', async ({ page }) => {
-    await page.goto('/');
-    await page.getByTestId('btn-go-signup').click();
-    await expect(page.getByTestId('screen-signup')).toBeVisible();
-
-    await page.getByTestId('btn-signup-testdrive').click();
-    await expect(page.getByTestId('screen-testdrive')).toBeVisible();
-
-    await expect(page.getByTestId('testdrive-dropzone')).toBeVisible();
-    await expect(page.getByTestId('testdrive-revenue')).toBeVisible();
+  test.beforeEach(async ({ page }) => {
+    await goToTestDrive(page);
   });
 
-  test('deve mostrar upload dropzone e revenue input', async ({ page }) => {
-    await goToTestDrive(page);
+  test('tela test-drive exibe dropzone, revenue input e botao dashboard desabilitado', async ({ page }) => {
     await expect(page.getByTestId('testdrive-dropzone')).toBeVisible();
     await expect(page.getByTestId('testdrive-revenue')).toBeVisible();
     await expect(page.getByTestId('btn-go-dashboard')).toBeDisabled();
   });
 
-  test('deve habilitar botao dashboard ao inserir receita', async ({ page }) => {
-    await goToTestDrive(page);
+  test('somente receita nao habilita botao dashboard (precisa de dados tambem)', async ({ page }) => {
     await page.getByTestId('testdrive-revenue').fill('5000');
+    await expect(page.getByTestId('btn-go-dashboard')).toBeDisabled();
+  });
+
+  test('receita zero nao habilita botao dashboard', async ({ page }) => {
+    await page.getByTestId('testdrive-revenue').fill('0');
+    await expect(page.getByTestId('btn-go-dashboard')).toBeDisabled();
+  });
+
+  test('somente dados sem receita nao habilita botao dashboard', async ({ page }) => {
+    await addManualEntry(page, 'Supermercado', '150', 'gasto');
+    await expect(page.getByTestId('btn-go-dashboard')).toBeDisabled();
+  });
+
+  test('receita + dados juntos habilitam botao dashboard', async ({ page }) => {
+    await page.getByTestId('testdrive-revenue').fill('5000');
+    await addManualEntry(page, 'Supermercado', '150', 'gasto');
     await expect(page.getByTestId('btn-go-dashboard')).toBeEnabled();
   });
 
-  test('deve adicionar transacao manual', async ({ page }) => {
-    await goToTestDrive(page);
-
-    // Switch to manual tab
-    await page.getByTestId('tab-manual').click();
-    await expect(page.getByTestId('tab-content-manual')).toBeVisible();
-
-    await page.getByTestId('manual-desc').fill('Teste Mercado');
-    await page.getByTestId('manual-value').fill('150.00');
-    await page.getByTestId('manual-type').selectOption('gasto');
-    await page.getByTestId('btn-add-manual').click();
-
-    await expect(page.getByTestId('manual-entries-list')).toContainText('Teste Mercado');
+  test('aba manual: adicionar transacao aparece na lista', async ({ page }) => {
+    await addManualEntry(page, 'Supermercado', '150', 'gasto');
+    await expect(page.getByTestId('manual-entries-list')).toContainText('Supermercado');
   });
 
-  test('deve navegar para dashboard com receita e dados', async ({ page }) => {
-    await goToTestDrive(page);
+  test('aba manual: adicionar receita aparece na lista', async ({ page }) => {
+    await addManualEntry(page, 'Freelance', '2000', 'receita');
+    await expect(page.getByTestId('manual-entries-list')).toContainText('Freelance');
+  });
+
+  test('aba manual: remover transacao da lista', async ({ page }) => {
+    await addManualEntry(page, 'ItemRemover', '100', 'gasto');
+    await expect(page.getByTestId('manual-entries-list')).toContainText('ItemRemover');
+
+    const removeBtn = page.locator('[data-testid="manual-entries-list"] button').first();
+    await removeBtn.click();
+    await expect(page.getByTestId('manual-entries-list')).not.toContainText('ItemRemover');
+  });
+
+  test('ir pro dashboard com receita e dados mostra corretamente', async ({ page }) => {
     await page.getByTestId('testdrive-revenue').fill('4500');
-
-    // Add manual entry to have data
-    await page.getByTestId('tab-manual').click();
-    await page.getByTestId('manual-desc').fill('Supermercado');
-    await page.getByTestId('manual-value').fill('200');
-    await page.getByTestId('manual-type').selectOption('gasto');
-    await page.getByTestId('btn-add-manual').click();
-
+    await addManualEntry(page, 'Mercado', '200', 'gasto');
     await page.getByTestId('btn-go-dashboard').click();
+
     await expect(page.getByTestId('screen-dashboard')).toBeVisible();
+    await expect(page.getByTestId('summary-card-income')).toBeVisible();
+    await expect(page.getByTestId('test-banner')).toBeVisible();
   });
 
+  test('banner test-drive tem botao de criar conta', async ({ page }) => {
+    await page.getByTestId('testdrive-revenue').fill('1000');
+    await addManualEntry(page, 'Teste', '50', 'gasto');
+    await page.getByTestId('btn-go-dashboard').click();
+    await expect(page.getByTestId('test-banner')).toBeVisible();
+    await expect(page.getByTestId('banner-register')).toBeVisible();
+  });
 });
